@@ -1,0 +1,522 @@
+---
+status: accepted
+owner: human
+last_reviewed: 2026-06-22
+upstream_docs:
+  - course-development-standard.md
+next_action: Create per-chapter docs under docs/product/chapters/ and link them from this catalog.
+---
+
+# Course Catalog
+
+## Catalog Standard
+
+This catalog records the accepted course sequence for explaining LLM and agent fundamentals from the inference interface outward. It is the source of truth for later chapter documents, animation specs, and page development.
+
+The course goal is to give learners a complete bottom-up understanding of LLM and agent operating principles. Human-agent collaboration and agent-agent collaboration appear late in the course because they require a full understanding of the agent loop, tool execution, state, context, and engineering constraints.
+
+This catalog does not approve final lecture scripts, on-screen copy, example data, animation storyboards, or rendered page content under `app/`. Those artifacts require explicit confirmation before implementation.
+
+## Chapter Document Convention
+
+When a chapter is expanded, create one independent document under `docs/product/chapters/` using this path pattern:
+
+`docs/product/chapters/NN-kebab-slug.md`
+
+Each chapter document should include learning goal, prerequisites, core concepts, interaction/demo ideas, boundaries and common misconceptions, and reusable component needs. After a chapter document exists, update this catalog so the chapter title links to that document.
+
+## Chapters
+
+### 01. 最小的一次 LLM 对话
+
+讲什么：用最简单的一问一答建立对 LLM 推理接口的直观认识，并同时展示无工具和有工具两种版本。
+
+完整知识点：
+
+- 用户输入如何进入应用。
+- 应用如何构造一次模型请求。
+- 模型如何产生响应。
+- 普通文本生成版本：用户提问，模型直接回答。
+- 工具调用版本：用户提问，模型请求调用 mock 的 `get_weather` 工具。
+- 普通回答和工具请求的区别。
+- 为什么所有后续技术都围绕这次推理接口调用展开。
+
+### 02. 多轮对话的真实机制
+
+讲什么：解释多轮对话不是模型天然记住了之前内容，而是应用把历史消息再次放进下一次请求里。
+
+完整知识点：
+
+- Conversation history 的作用。
+- 显式历史消息重传。
+- `previous_response_id` 或平台托管状态与显式历史的区别。
+- 上下文窗口对历史长度的限制。
+- 历史越长，输入 token 成本越高。
+- 即使使用托管 conversation state，历史输入仍然会影响计费和上下文预算。
+- 删除、裁剪或压缩历史为什么会改变回答。
+- 历史上下文、长期 memory、RAG 检索上下文三者的区别。
+
+### 03. 工具调用的本质
+
+讲什么：把工具调用作为 LLM 应用能力扩展的基础机制重点讲清楚。
+
+完整知识点：
+
+- 工具调用解决的问题：让模型通过应用间接使用外部世界的能力。
+- 工具声明：name、description、parameters schema。
+- 工具描述如何影响模型是否选择工具。
+- `tool_choice` 如何控制或引导工具选择。
+- 模型输出的不是工具执行结果，而是结构化的工具调用请求。
+- 应用负责真正执行工具。
+- 工具结果写回模型上下文。
+- 模型基于工具结果继续生成最终答案。
+- 没有工具调用时，模型主要只能生成文本；有工具调用后，模型可以连接 API、数据库、文件、代码执行和外部工作流。
+
+### 04. 用 `get_weather` 拆解完整工具调用链路
+
+讲什么：围绕一个 mock 天气工具逐步拆开完整工具调用流程。
+
+完整知识点：
+
+- 用户提出天气问题。
+- 模型判断是否需要调用 `get_weather`。
+- 模型生成工具名和参数。
+- 应用执行 mock 函数。
+- 工具返回结构化结果。
+- 应用把 tool result 写回模型。
+- 模型组织最终自然语言回答。
+- 城市不明确时如何追问。
+- 参数缺失时如何修复。
+- 工具报错时如何表达。
+- 工具返回异常数据时如何让模型或工程层处理。
+- 正常路径和异常路径在调用链路上的差异。
+
+### 05. 消息、Role 与指令层级
+
+讲什么：解释模型看到的上下文不是普通聊天记录，而是带角色和优先级的消息结构。
+
+完整知识点：
+
+- `system` role 的作用。
+- `developer` role 的作用。
+- `user` role 的作用。
+- `assistant` role 的作用。
+- `tool` role 的作用。
+- 指令优先级和冲突处理。
+- developer 指令和 user 指令的区别。
+- assistant 消息既可能是自然语言，也可能是工具调用。
+- tool 消息只是工具执行结果，不代表模型自己天然知道事实。
+- 角色层级如何影响工具调用、格式约束和安全边界。
+
+### 06. Token、上下文窗口、成本与延迟
+
+讲什么：解释模型输入输出的基本计量单位，以及为什么长上下文会影响成本和速度。
+
+完整知识点：
+
+- Token 是模型处理文本的基本单位。
+- 输入 token、输出 token、reasoning token。
+- 上下文窗口是什么。
+- 上下文窗口如何限制可放入的信息量。
+- `max output tokens` 为什么必要。
+- 长上下文为什么会增加成本。
+- 长上下文为什么会增加延迟。
+- 输出长度、推理预算和用户体验之间的关系。
+- 为什么模型是逐步生成输出，而不是一次性吐出完整答案。
+
+### 07. 前缀缓存：多轮对话和长上下文的必备优化
+
+讲什么：讲清楚 prompt or prefix caching 对多轮对话、长上下文和工具列表场景的重要性。
+
+完整知识点：
+
+- 前缀缓存解决的问题：重复处理稳定上下文带来的延迟和成本。
+- 稳定内容应该尽量放在请求前部。
+- 动态用户内容应该尽量放在请求后部。
+- Cache hit 和 cached input tokens。
+- `prompt_cache_key` 如何提高相似请求的缓存命中机会。
+- 多轮对话为什么特别需要前缀缓存。
+- 大工具列表和 schema 为什么适合被缓存。
+- RAG 或项目上下文中哪些内容可能稳定，哪些内容高度动态。
+- 前缀缓存可以加速推理并降低输入成本。
+- 前缀缓存只是性能和成本优化，不改变模型实际看到的语义内容。
+
+### 08. 推理接口控制参数
+
+讲什么：解释一次推理调用中常见参数分别控制什么。
+
+完整知识点：
+
+- `temperature` 控制随机性。
+- `top_p` 控制采样候选范围。
+- `seed` 与可重复性。
+- `verbosity` 与回答详细程度。
+- `reasoning effort` 与推理预算。
+- `max output tokens` 与输出上限。
+- `parallel tool calls` 与并行工具调用。
+- `truncation` 与上下文超限处理。
+- 参数如何影响准确性、稳定性、延迟、成本和用户体验。
+- 参数不是提示词的替代品，而是推理接口层面的行为控制。
+
+### 09. 推理输出形态
+
+讲什么：说明模型输出不只有最终自然语言文本。
+
+完整知识点：
+
+- 普通文本输出。
+- 结构化输出。
+- JSON schema 输出。
+- 流式输出。
+- Reasoning 输出。
+- Reasoning summary。
+- 工具调用输出。
+- 内置工具调用结果。
+- 应用如何消费不同类型的输出。
+- 为什么不同输出形态适合不同产品场景。
+
+### 10. Prompt Engineering
+
+讲什么：从 role 和上下文出发解释提示词工程的真实作用。
+
+完整知识点：
+
+- 明确目标。
+- 添加约束。
+- 设定角色和任务边界。
+- 指定输出格式。
+- Zero-shot 和 few-shot。
+- 示例和反例。
+- 分步骤指令。
+- Prompt chaining。
+- 提示词如何改变模型看到的指令和示例。
+- 提示词能解决的问题。
+- 提示词解决不了的问题。
+
+### 11. Context Engineering
+
+讲什么：把 prompt 扩展为整个上下文构造工程。
+
+完整知识点：
+
+- 当前请求应该放什么上下文。
+- 上下文放多少。
+- 上下文放在什么顺序。
+- 指令和数据如何隔离。
+- 如何避免上下文污染。
+- 如何压缩上下文。
+- 如何标注信息可信度。
+- 如何组织工具结果、用户输入、系统规则和外部资料。
+- Context Engineering 与 Prompt Engineering 的区别。
+- Context Engineering 如何直接影响模型决策和工具调用。
+
+### 12. MCP：工具和上下文的标准化连接
+
+讲什么：在理解工具调用后，解释 MCP 解决的是工具和上下文连接标准化问题。
+
+完整知识点：
+
+- MCP 解决什么问题。
+- MCP host、client、server。
+- MCP tools。
+- MCP resources。
+- MCP prompts。
+- MCP 和普通 function calling 的关系。
+- MCP 如何把外部系统接入模型应用。
+- MCP 不是模型能力本身，而是应用连接工具和上下文的协议层。
+- MCP 带来的标准化收益和工程边界。
+
+### 13. RAG 基础：把外部知识放进推理接口
+
+讲什么：解释 RAG 如何在调用时把相关资料提供给模型。
+
+完整知识点：
+
+- RAG 解决知识过期和私有知识问题。
+- 文档切分。
+- Embedding。
+- 向量检索。
+- 召回。
+- 重排。
+- 上下文拼装。
+- 引用来源。
+- 回答生成。
+- RAG 不是让模型永久学会知识，而是在调用时把相关知识放进上下文。
+- RAG 成功依赖检索质量和生成质量两个环节。
+
+### 14. RAG 优化
+
+讲什么：深入讲 RAG 在真实系统中如何提高召回和回答质量。
+
+完整知识点：
+
+- Query rewriting。
+- Multi-query。
+- HyDE 或模拟回答。
+- Metadata filter。
+- Rerank。
+- Chunk strategy。
+- 父子块。
+- 上下文压缩。
+- 引用校验。
+- 答案可信度判断。
+- 召回失败和生成失败的区分。
+- 如何通过交互展示不同优化策略对检索结果和最终回答的影响。
+
+### 15. Memory：跨会话保存和读取上下文
+
+讲什么：解释 memory 与历史消息、RAG 的区别。
+
+完整知识点：
+
+- Memory 解决跨会话延续问题。
+- 用户偏好。
+- 长期事实。
+- 项目状态。
+- 任务状态。
+- 写入策略。
+- 读取策略。
+- 更新与遗忘。
+- 错误记忆风险。
+- 隐私风险。
+- Memory 是应用维护的可读写上下文系统，不是模型天然记住一切。
+
+### 16. Skills：把可复用工作方式封装起来
+
+讲什么：解释 skill 在 agent 体系中如何沉淀重复工作方法。
+
+完整知识点：
+
+- Skill 解决重复工作方法难以复用的问题。
+- 技能说明。
+- 触发条件。
+- 操作流程。
+- 参考资料。
+- 脚本。
+- 模板。
+- Skill 与 prompt 的区别。
+- Skill 与 tool 的区别。
+- Skill 如何让 agent 在特定任务上更稳定。
+- Skill 如何作为组织工作规范的载体。
+
+### 17. 从工具调用到最小 Agent 循环
+
+讲什么：把 agent 还原成围绕工具调用自动循环的工程结构。
+
+完整知识点：
+
+- Agent 不是新魔法，而是自动化的推理和工具调用循环。
+- 调用模型。
+- 发现模型要调用工具。
+- 执行工具。
+- 写回工具结果。
+- 再次调用模型。
+- 重复直到得到最终答案或达到停止条件。
+- Agent loop 与单次工具调用的区别。
+- 停止条件、最大轮数、失败退出。
+- 最小 agent 循环如何从前面的 `get_weather` 例子自然扩展出来。
+
+### 18. Agent 如何“决定”下一步
+
+讲什么：解释 agent 行为来自上下文和工程约束。
+
+完整知识点：
+
+- 系统提示词如何塑造 agent 行为。
+- Developer 提示词如何提供应用侧规则。
+- 用户任务如何成为当前目标。
+- 可用工具列表如何限制可行动作。
+- 工具描述如何影响模型选择。
+- 历史观察结果如何影响下一步。
+- 环境信息如何影响行动空间。
+- 模型的决策由上下文塑造。
+- Agent 的行为边界由上下文和工程约束共同决定。
+
+### 19. Agent 工程化：错误如何处理
+
+讲什么：明确哪些错误由工程层处理，哪些错误应作为 tool result 给模型。
+
+完整知识点：
+
+- 错误处理是 agent 工程化的核心边界问题。
+- 推理接口调用失败属于工程层错误。
+- 认证失败属于工程层错误。
+- 模型不可用属于工程层错误。
+- 连续超时属于工程层错误。
+- 限流重试后仍失败属于工程层错误。
+- SDK 配置错误属于工程层错误。
+- 工具 handler 崩溃属于工程层错误。
+- 工具 schema 或注册表不一致属于工程层错误。
+- 推理接口失败 3 次后应停止 agent loop，并让用户决定重试、切换模型、稍后再试或人工处理。
+- 业务查询无结果可以作为 tool result 给模型。
+- 参数不明确可以作为 tool result 给模型，让模型追问用户。
+- 目标对象不存在可以作为 tool result 给模型。
+- 权限不足但可请求授权时，可以作为 tool result 给模型。
+- 外部工具返回可理解的业务错误时，可以作为 tool result 给模型。
+- 工具临时失败但有替代工具可选时，可以作为 tool result 给模型。
+- 工程层处理和回填给模型两种方式的利弊。
+
+### 20. Agent 工程化：运行环境如何进入上下文
+
+讲什么：解释 agent 如何知道自己所处的执行环境和可用能力。
+
+完整知识点：
+
+- Agent 不是天然知道执行环境。
+- 操作系统信息。
+- Shell 类型和版本。
+- 当前工作目录。
+- 文件树。
+- 项目目录规范。
+- `AGENTS.md` 或其他项目工作指导文件。
+- 依赖环境。
+- 权限边界。
+- 可写目录。
+- 网络权限。
+- 环境信息如何进入上下文。
+- 环境信息过多时如何摘要和选择。
+
+### 21. Agent 工程化：文件、目录与用户上传内容
+
+讲什么：解释文件型任务如何进入 agent 上下文。
+
+完整知识点：
+
+- 用户上传文件如何被应用接收。
+- 文件如何被表示给模型。
+- 文件摘要。
+- 文件索引。
+- 文件引用。
+- 局部读取。
+- 二进制文件处理。
+- 图片解析。
+- PDF 解析。
+- 表格解析。
+- 文件过大时如何分块。
+- 文件过大时如何检索。
+- 如何避免模型误以为自己已经读过全部文件。
+
+### 22. Agent 工程化：上下文超过上限怎么办
+
+讲什么：讲长任务中上下文管理和压缩失真的处理方案。
+
+完整知识点：
+
+- 上下文超过上限时会发生什么。
+- 自动截断的风险。
+- 会话压缩。
+- 摘要。
+- 状态提取。
+- 历史裁剪。
+- 重要事件保留。
+- 工具结果压缩。
+- 任务检查点。
+- 压缩失真问题。
+- 完整原始对话持久保存。
+- 提供 `search_conversation` 工具让模型回查完整历史。
+- 提供子 agent 基于历史会话回答定向问题。
+- 子 agent 问答相当于让模型向另一个基于完整历史的模型提问，得到更有针对性的压缩结果。
+- 结构化状态 ledger。
+- 给压缩摘要附带来源 turn id。
+- 如何判断压缩后是否丢失关键事实。
+
+### 23. Agent 工程化：计划、任务状态与长时间运行
+
+讲什么：解释 agent 如何管理持续任务。
+
+完整知识点：
+
+- Plan。
+- Todo。
+- Checkpoint。
+- 后台任务。
+- 长时间运行的进程。
+- 进程输出截断。
+- 轮询。
+- 取消。
+- 恢复。
+- 失败续跑。
+- 用户中断后如何继续。
+- 如何避免 agent 在长任务中丢失目标。
+- 如何让用户理解当前执行状态。
+
+### 24. Agent 工程化：权限、审批与高风险动作
+
+讲什么：解释让 agent 可用且可控所需的权限和审批机制。
+
+完整知识点：
+
+- 只读动作。
+- 写操作。
+- 外部请求。
+- 删除。
+- 支付。
+- 发送消息。
+- 影响生产环境的动作。
+- 高风险动作识别。
+- 审批点。
+- 最小权限。
+- 沙箱。
+- 人类确认。
+- 权限策略如何进入 agent loop。
+- 权限错误如何与工具错误处理结合。
+
+### 25. 人和 Agent 的协作
+
+讲什么：在人已理解 agent 运行机制后，再讲人如何参与和塑造 agent 工作。
+
+完整知识点：
+
+- 人给目标。
+- Agent 给计划。
+- 人审批。
+- Agent 执行。
+- Agent 汇报。
+- 人纠偏。
+- 人提供补充上下文。
+- 人改变权限和边界。
+- 协作模式由任务、权限、风险和用户指令决定。
+- 人机协作不是固定模板，而是围绕 agent loop 的控制方式。
+
+### 26. Agent 和 Agent 的协作
+
+讲什么：讲多 agent 协作不是固定范式，而是角色、上下文、工具和交接规则的组合。
+
+完整知识点：
+
+- Manager-worker。
+- Specialist。
+- Reviewer。
+- Parallel agents。
+- Handoff。
+- Agent as tool。
+- 共享上下文。
+- 隔离上下文。
+- 冲突处理。
+- 结果合并。
+- 谁拥有最终回复。
+- Agent 间协作模式不是只有网上常见的几种。
+- Agent 如何协作取决于用户和系统如何定义角色、上下文、工具和交接规则。
+
+### 27. 观测、安全、评估与进化
+
+讲什么：最后收束工程稳定性相关能力，不作为课程主线重点。
+
+完整知识点：
+
+- Trace。
+- Tool call log。
+- Token usage。
+- Latency。
+- Cost。
+- 错误分类。
+- Prompt injection。
+- 越权工具调用。
+- Eval set。
+- 回归测试。
+- 线上反馈。
+- Prompt 持续改进。
+- RAG 持续改进。
+- Tool 持续改进。
+- Skill 持续改进。
+- 为什么这些能力帮助 agent 变稳定，但不是本课程的主线重点。
