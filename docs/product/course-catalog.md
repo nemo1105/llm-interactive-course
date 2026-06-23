@@ -4,30 +4,30 @@ owner: human
 last_reviewed: 2026-06-22
 upstream_docs:
   - course-development-standard.md
-next_action: Create per-chapter docs under docs/product/chapters/ and link them from this catalog.
+next_action: 在 docs/product/chapters/ 下创建逐章文档，并从本目录链接对应章节。
 ---
 
-# Course Catalog
+# 课程目录
 
-## Catalog Standard
+## 目录标准
 
-This catalog records the accepted course sequence for explaining LLM and agent fundamentals from the inference interface outward. It is the source of truth for later chapter documents, animation specs, and page development.
+本目录记录已接受的课程顺序，用于从推理接口向外解释 LLM 和智能体（agent）基础。它是后续章节文档、动画规格和页面开发的事实来源。
 
-The course goal is to give learners a complete bottom-up understanding of LLM and agent operating principles. Human-agent collaboration and agent-agent collaboration appear late in the course because they require a full understanding of the agent loop, tool execution, state, context, and engineering constraints.
+课程目标是让学习者自底向上完整理解 LLM 和智能体（agent）的运行原则。人机协作和智能体间协作放在课程后段，因为它们需要先理解智能体循环（agent loop）、工具执行、状态、上下文和工程约束。
 
-This catalog does not approve final lecture scripts, on-screen copy, example data, animation storyboards, or rendered page content under `app/`. Those artifacts require explicit confirmation before implementation.
+本目录不批准最终演讲脚本、页面展示文案、示例数据、动画分镜或 `app/` 下会被渲染的页面内容。这些产物在实现前都需要明确确认。
 
-## Chapter Document Convention
+## 章节文档约定
 
-When a chapter is expanded, create one independent document under `docs/product/chapters/` using this path pattern:
+扩展某个章节时，在 `docs/product/chapters/` 下创建一份独立文档，路径格式如下：
 
 `docs/product/chapters/NN-kebab-slug.md`
 
-Each chapter document should include learning goal, prerequisites, core concepts, interaction/demo ideas, boundaries and common misconceptions, and reusable component needs. After a chapter document exists, update this catalog so the chapter title links to that document.
+每份章节文档应包含学习目标、前置知识、核心概念、交互或演示想法、边界与常见误解，以及可复用组件需求。章节文档创建后，更新本目录，让章节标题链接到对应文档。
 
-## Chapters
+## 章节
 
-### 01. 最小的一次 LLM 对话
+### 01. [最小的一次 LLM 对话](chapters/01-minimal-llm-conversation.md)
 
 讲什么：用最简单的一问一答建立对 LLM 推理接口的直观认识，并同时展示无工具和有工具两种版本。
 
@@ -47,7 +47,7 @@ Each chapter document should include learning goal, prerequisites, core concepts
 
 完整知识点：
 
-- Conversation history 的作用。
+- 对话历史（Conversation history）的作用。
 - 显式历史消息重传。
 - `previous_response_id` 或平台托管状态与显式历史的区别。
 - 上下文窗口对历史长度的限制。
@@ -83,7 +83,7 @@ Each chapter document should include learning goal, prerequisites, core concepts
 - 模型生成工具名和参数。
 - 应用执行 mock 函数。
 - 工具返回结构化结果。
-- 应用把 tool result 写回模型。
+- 应用把工具结果（tool result）写回模型。
 - 模型组织最终自然语言回答。
 - 城市不明确时如何追问。
 - 参数缺失时如何修复。
@@ -133,7 +133,7 @@ Each chapter document should include learning goal, prerequisites, core concepts
 - 前缀缓存解决的问题：重复处理稳定上下文带来的延迟和成本。
 - 稳定内容应该尽量放在请求前部。
 - 动态用户内容应该尽量放在请求后部。
-- Cache hit 和 cached input tokens。
+- 缓存命中（cache hit）和已缓存输入 token（cached input tokens）。
 - `prompt_cache_key` 如何提高相似请求的缓存命中机会。
 - 多轮对话为什么特别需要前缀缓存。
 - 大工具列表和 schema 为什么适合被缓存。
@@ -166,16 +166,16 @@ Each chapter document should include learning goal, prerequisites, core concepts
 
 - 普通文本输出。
 - 结构化输出。
-- JSON schema 输出。
+- JSON schema 结构化输出。
 - 流式输出。
-- Reasoning 输出。
-- Reasoning summary。
+- 推理输出（reasoning output）。
+- 推理摘要（reasoning summary）。
 - 工具调用输出。
 - 内置工具调用结果。
 - 应用如何消费不同类型的输出。
 - 为什么不同输出形态适合不同产品场景。
 
-### 10. Prompt Engineering
+### 10. 提示词工程（Prompt Engineering）
 
 讲什么：从 role 和上下文出发解释提示词工程的真实作用。
 
@@ -188,12 +188,12 @@ Each chapter document should include learning goal, prerequisites, core concepts
 - Zero-shot 和 few-shot。
 - 示例和反例。
 - 分步骤指令。
-- Prompt chaining。
+- 提示词链式调用（prompt chaining）。
 - 提示词如何改变模型看到的指令和示例。
 - 提示词能解决的问题。
 - 提示词解决不了的问题。
 
-### 11. Context Engineering
+### 11. 上下文工程（Context Engineering）
 
 讲什么：把 prompt 扩展为整个上下文构造工程。
 
@@ -207,8 +207,8 @@ Each chapter document should include learning goal, prerequisites, core concepts
 - 如何压缩上下文。
 - 如何标注信息可信度。
 - 如何组织工具结果、用户输入、系统规则和外部资料。
-- Context Engineering 与 Prompt Engineering 的区别。
-- Context Engineering 如何直接影响模型决策和工具调用。
+- 上下文工程（Context Engineering）与提示词工程（Prompt Engineering）的区别。
+- 上下文工程（Context Engineering）如何直接影响模型决策和工具调用。
 
 ### 12. MCP：工具和上下文的标准化连接
 
@@ -234,7 +234,7 @@ Each chapter document should include learning goal, prerequisites, core concepts
 
 - RAG 解决知识过期和私有知识问题。
 - 文档切分。
-- Embedding。
+- 嵌入（embedding）。
 - 向量检索。
 - 召回。
 - 重排。
@@ -250,12 +250,12 @@ Each chapter document should include learning goal, prerequisites, core concepts
 
 完整知识点：
 
-- Query rewriting。
-- Multi-query。
+- 查询改写（query rewriting）。
+- 多查询（multi-query）。
 - HyDE 或模拟回答。
-- Metadata filter。
-- Rerank。
-- Chunk strategy。
+- 元数据过滤（metadata filter）。
+- 重排（rerank）。
+- 分块策略（chunk strategy）。
 - 父子块。
 - 上下文压缩。
 - 引用校验。
@@ -263,13 +263,13 @@ Each chapter document should include learning goal, prerequisites, core concepts
 - 召回失败和生成失败的区分。
 - 如何通过交互展示不同优化策略对检索结果和最终回答的影响。
 
-### 15. Memory：跨会话保存和读取上下文
+### 15. 记忆（Memory）：跨会话保存和读取上下文
 
-讲什么：解释 memory 与历史消息、RAG 的区别。
+讲什么：解释记忆（memory）与历史消息、RAG 的区别。
 
 完整知识点：
 
-- Memory 解决跨会话延续问题。
+- 记忆（memory）解决跨会话延续问题。
 - 用户偏好。
 - 长期事实。
 - 项目状态。
@@ -279,66 +279,66 @@ Each chapter document should include learning goal, prerequisites, core concepts
 - 更新与遗忘。
 - 错误记忆风险。
 - 隐私风险。
-- Memory 是应用维护的可读写上下文系统，不是模型天然记住一切。
+- 记忆（memory）是应用维护的可读写上下文系统，不是模型天然记住一切。
 
-### 16. Skills：把可复用工作方式封装起来
+### 16. 技能（Skills）：把可复用工作方式封装起来
 
-讲什么：解释 skill 在 agent 体系中如何沉淀重复工作方法。
+讲什么：解释技能（skill）在智能体（agent）体系中如何沉淀重复工作方法。
 
 完整知识点：
 
-- Skill 解决重复工作方法难以复用的问题。
+- 技能（skill）解决重复工作方法难以复用的问题。
 - 技能说明。
 - 触发条件。
 - 操作流程。
 - 参考资料。
 - 脚本。
 - 模板。
-- Skill 与 prompt 的区别。
-- Skill 与 tool 的区别。
-- Skill 如何让 agent 在特定任务上更稳定。
-- Skill 如何作为组织工作规范的载体。
+- 技能（skill）与提示词（prompt）的区别。
+- 技能（skill）与工具（tool）的区别。
+- 技能（skill）如何让智能体（agent）在特定任务上更稳定。
+- 技能（skill）如何作为组织工作规范的载体。
 
-### 17. 从工具调用到最小 Agent 循环
+### 17. 从工具调用到最小智能体循环（Agent loop）
 
-讲什么：把 agent 还原成围绕工具调用自动循环的工程结构。
+讲什么：把智能体（agent）还原成围绕工具调用自动循环的工程结构。
 
 完整知识点：
 
-- Agent 不是新魔法，而是自动化的推理和工具调用循环。
+- 智能体（agent）不是新魔法，而是自动化的推理和工具调用循环。
 - 调用模型。
 - 发现模型要调用工具。
 - 执行工具。
 - 写回工具结果。
 - 再次调用模型。
 - 重复直到得到最终答案或达到停止条件。
-- Agent loop 与单次工具调用的区别。
+- 智能体循环（agent loop）与单次工具调用的区别。
 - 停止条件、最大轮数、失败退出。
-- 最小 agent 循环如何从前面的 `get_weather` 例子自然扩展出来。
+- 最小智能体循环如何从前面的 `get_weather` 例子自然扩展出来。
 
-### 18. Agent 如何“决定”下一步
+### 18. 智能体（Agent）如何“决定”下一步
 
-讲什么：解释 agent 行为来自上下文和工程约束。
+讲什么：解释智能体（agent）行为来自上下文和工程约束。
 
 完整知识点：
 
-- 系统提示词如何塑造 agent 行为。
-- Developer 提示词如何提供应用侧规则。
+- 系统提示词如何塑造智能体行为。
+- 开发者提示词（developer prompt）如何提供应用侧规则。
 - 用户任务如何成为当前目标。
 - 可用工具列表如何限制可行动作。
 - 工具描述如何影响模型选择。
 - 历史观察结果如何影响下一步。
 - 环境信息如何影响行动空间。
 - 模型的决策由上下文塑造。
-- Agent 的行为边界由上下文和工程约束共同决定。
+- 智能体的行为边界由上下文和工程约束共同决定。
 
-### 19. Agent 工程化：错误如何处理
+### 19. 智能体（Agent）工程化：错误如何处理
 
-讲什么：明确哪些错误由工程层处理，哪些错误应作为 tool result 给模型。
+讲什么：明确哪些错误由工程层处理，哪些错误应作为工具结果（tool result）给模型。
 
 完整知识点：
 
-- 错误处理是 agent 工程化的核心边界问题。
+- 错误处理是智能体工程化的核心边界问题。
 - 推理接口调用失败属于工程层错误。
 - 认证失败属于工程层错误。
 - 模型不可用属于工程层错误。
@@ -347,22 +347,22 @@ Each chapter document should include learning goal, prerequisites, core concepts
 - SDK 配置错误属于工程层错误。
 - 工具 handler 崩溃属于工程层错误。
 - 工具 schema 或注册表不一致属于工程层错误。
-- 推理接口失败 3 次后应停止 agent loop，并让用户决定重试、切换模型、稍后再试或人工处理。
-- 业务查询无结果可以作为 tool result 给模型。
-- 参数不明确可以作为 tool result 给模型，让模型追问用户。
-- 目标对象不存在可以作为 tool result 给模型。
-- 权限不足但可请求授权时，可以作为 tool result 给模型。
-- 外部工具返回可理解的业务错误时，可以作为 tool result 给模型。
-- 工具临时失败但有替代工具可选时，可以作为 tool result 给模型。
+- 推理接口失败 3 次后应停止智能体循环，并让用户决定重试、切换模型、稍后再试或人工处理。
+- 业务查询无结果可以作为工具结果给模型。
+- 参数不明确可以作为工具结果给模型，让模型追问用户。
+- 目标对象不存在可以作为工具结果给模型。
+- 权限不足但可请求授权时，可以作为工具结果给模型。
+- 外部工具返回可理解的业务错误时，可以作为工具结果给模型。
+- 工具临时失败但有替代工具可选时，可以作为工具结果给模型。
 - 工程层处理和回填给模型两种方式的利弊。
 
-### 20. Agent 工程化：运行环境如何进入上下文
+### 20. 智能体（Agent）工程化：运行环境如何进入上下文
 
-讲什么：解释 agent 如何知道自己所处的执行环境和可用能力。
+讲什么：解释智能体（agent）如何知道自己所处的执行环境和可用能力。
 
 完整知识点：
 
-- Agent 不是天然知道执行环境。
+- 智能体不是天然知道执行环境。
 - 操作系统信息。
 - Shell 类型和版本。
 - 当前工作目录。
@@ -376,9 +376,9 @@ Each chapter document should include learning goal, prerequisites, core concepts
 - 环境信息如何进入上下文。
 - 环境信息过多时如何摘要和选择。
 
-### 21. Agent 工程化：文件、目录与用户上传内容
+### 21. 智能体（Agent）工程化：文件、目录与用户上传内容
 
-讲什么：解释文件型任务如何进入 agent 上下文。
+讲什么：解释文件型任务如何进入智能体上下文。
 
 完整知识点：
 
@@ -396,7 +396,7 @@ Each chapter document should include learning goal, prerequisites, core concepts
 - 文件过大时如何检索。
 - 如何避免模型误以为自己已经读过全部文件。
 
-### 22. Agent 工程化：上下文超过上限怎么办
+### 22. 智能体（Agent）工程化：上下文超过上限怎么办
 
 讲什么：讲长任务中上下文管理和压缩失真的处理方案。
 
@@ -414,21 +414,21 @@ Each chapter document should include learning goal, prerequisites, core concepts
 - 压缩失真问题。
 - 完整原始对话持久保存。
 - 提供 `search_conversation` 工具让模型回查完整历史。
-- 提供子 agent 基于历史会话回答定向问题。
-- 子 agent 问答相当于让模型向另一个基于完整历史的模型提问，得到更有针对性的压缩结果。
+- 提供子智能体基于历史会话回答定向问题。
+- 子智能体问答相当于让模型向另一个基于完整历史的模型提问，得到更有针对性的压缩结果。
 - 结构化状态 ledger。
 - 给压缩摘要附带来源 turn id。
 - 如何判断压缩后是否丢失关键事实。
 
-### 23. Agent 工程化：计划、任务状态与长时间运行
+### 23. 智能体（Agent）工程化：计划、任务状态与长时间运行
 
-讲什么：解释 agent 如何管理持续任务。
+讲什么：解释智能体如何管理持续任务。
 
 完整知识点：
 
-- Plan。
-- Todo。
-- Checkpoint。
+- 计划（plan）。
+- 待办事项（todo）。
+- 检查点（checkpoint）。
 - 后台任务。
 - 长时间运行的进程。
 - 进程输出截断。
@@ -437,12 +437,12 @@ Each chapter document should include learning goal, prerequisites, core concepts
 - 恢复。
 - 失败续跑。
 - 用户中断后如何继续。
-- 如何避免 agent 在长任务中丢失目标。
+- 如何避免智能体在长任务中丢失目标。
 - 如何让用户理解当前执行状态。
 
-### 24. Agent 工程化：权限、审批与高风险动作
+### 24. 智能体（Agent）工程化：权限、审批与高风险动作
 
-讲什么：解释让 agent 可用且可控所需的权限和审批机制。
+讲什么：解释让智能体可用且可控所需的权限和审批机制。
 
 完整知识点：
 
@@ -458,45 +458,45 @@ Each chapter document should include learning goal, prerequisites, core concepts
 - 最小权限。
 - 沙箱。
 - 人类确认。
-- 权限策略如何进入 agent loop。
+- 权限策略如何进入智能体循环。
 - 权限错误如何与工具错误处理结合。
 
-### 25. 人和 Agent 的协作
+### 25. 人和智能体（Agent）的协作
 
-讲什么：在人已理解 agent 运行机制后，再讲人如何参与和塑造 agent 工作。
+讲什么：在人已理解智能体运行机制后，再讲人如何参与和塑造智能体工作。
 
 完整知识点：
 
 - 人给目标。
-- Agent 给计划。
+- 智能体给计划。
 - 人审批。
-- Agent 执行。
-- Agent 汇报。
+- 智能体执行。
+- 智能体汇报。
 - 人纠偏。
 - 人提供补充上下文。
 - 人改变权限和边界。
 - 协作模式由任务、权限、风险和用户指令决定。
-- 人机协作不是固定模板，而是围绕 agent loop 的控制方式。
+- 人机协作不是固定模板，而是围绕智能体循环的控制方式。
 
-### 26. Agent 和 Agent 的协作
+### 26. 智能体（Agent）之间的协作
 
-讲什么：讲多 agent 协作不是固定范式，而是角色、上下文、工具和交接规则的组合。
+讲什么：讲多智能体协作不是固定范式，而是角色、上下文、工具和交接规则的组合。
 
 完整知识点：
 
-- Manager-worker。
-- Specialist。
-- Reviewer。
-- Parallel agents。
-- Handoff。
-- Agent as tool。
+- 管理者-执行者（manager-worker）。
+- 专家型智能体（specialist）。
+- 复审者（reviewer）。
+- 并行智能体（parallel agents）。
+- 交接（handoff）。
+- 作为工具的智能体（agent as tool）。
 - 共享上下文。
 - 隔离上下文。
 - 冲突处理。
 - 结果合并。
 - 谁拥有最终回复。
-- Agent 间协作模式不是只有网上常见的几种。
-- Agent 如何协作取决于用户和系统如何定义角色、上下文、工具和交接规则。
+- 智能体间协作模式不是只有网上常见的几种。
+- 智能体如何协作取决于用户和系统如何定义角色、上下文、工具和交接规则。
 
 ### 27. 观测、安全、评估与进化
 
@@ -504,19 +504,19 @@ Each chapter document should include learning goal, prerequisites, core concepts
 
 完整知识点：
 
-- Trace。
-- Tool call log。
-- Token usage。
-- Latency。
-- Cost。
+- 轨迹（trace）。
+- 工具调用日志（tool call log）。
+- token 使用量（token usage）。
+- 延迟（latency）。
+- 成本（cost）。
 - 错误分类。
-- Prompt injection。
+- 提示词注入（prompt injection）。
 - 越权工具调用。
-- Eval set。
+- 评估集（eval set）。
 - 回归测试。
 - 线上反馈。
-- Prompt 持续改进。
+- 提示词（prompt）持续改进。
 - RAG 持续改进。
-- Tool 持续改进。
-- Skill 持续改进。
-- 为什么这些能力帮助 agent 变稳定，但不是本课程的主线重点。
+- 工具（tool）持续改进。
+- 技能（skill）持续改进。
+- 为什么这些能力帮助智能体变稳定，但不是本课程的主线重点。

@@ -1,84 +1,32 @@
 ---
 status: accepted
 owner: human
-last_reviewed: 2026-06-22
+last_reviewed: 2026-06-23
 upstream_docs:
   - ../../AGENTS.md
-next_action: Use this standard when drafting course catalogs, chapter contracts, animation specs, and concept explanation docs.
+next_action: 起草课程目录、章节合同、动画规格和概念解释文档时引用 AGENTS.md。
 ---
 
-# Course Development Standard
+# 课程开发事实记录
 
-## Core Thesis
+## 文档边界
 
-This course explains LLM applications from the model inference interface outward.
+本文件只记录课程产品事实、已确认取舍和需要下游章节引用的本地背景；规则来源见 `AGENTS.md`。
 
-The simplest starting point is one ordinary conversation with a large language model: a user provides input, the application constructs a request, the model receives messages and context, and the model produces output. Every later concept must be taught by showing how it changes, supports, constrains, extends, evaluates, or operationalizes that inference interface.
+## 已确认产品事实
 
-Most LLM applications are engineering work around the same basic interface: construct better input, supply more relevant context, constrain output shape and behavior, connect external capabilities, and evaluate whether the result reliably completes the intended goal.
+- 课程从一次普通 LLM 对话开始，再逐步揭示请求构造、消息、token、上下文、提示词、工具、MCP、RAG、技能、记忆、评估和智能体工作流。
+- 课程解释主线围绕同一个推理接口展开：用户输入进入应用，应用构造请求，模型产生输出，应用处理并展示结果。
+- 第一受众是具备基础 AI 或编程概念、但未必构建过 LLM 系统的混合技术听众。
+- 课程需要对工程师足够精确，也需要对非专业听众足够具体。
 
-## Course Ordering Rules
+## 当前确认状态
 
-- Start from the simplest possible conversation and reveal implementation layers gradually.
-- Earlier lessons must be understandable without relying on later lessons.
-- Later lessons may depend on concepts that have already been taught.
-- Each concept should be introduced only after the minimum prerequisite idea is already concrete.
-- Course progression should feel like expanding a call path, not collecting disconnected terminology.
-- A concept may be mentioned early as a preview, but its mechanism should not be required until the relevant lesson.
+- 课程目录已在 `course-catalog.md` 中记录。
+- 第一章内容合同已在 `chapters/01-minimal-llm-conversation.md` 中记录。
+- 第一章允许使用上海天气 mock 数据和真实感对话示例，但不得接入真实外部天气 API。
 
-## Concept Explanation Contract
+## 复审记录
 
-Every LLM concept, regardless of whether the concept is strong, weak, popular, or controversial, should be explained through the same questions:
-
-- What does the concept mean?
-- What problem is it trying to solve?
-- Where does it intervene in the LLM inference flow?
-- What mechanism does it use to solve the problem?
-- What is the underlying principle?
-- What changes can learners observe through interaction?
-- What are the limits, tradeoffs, or failure modes?
-
-The explanation should stay tied to the concrete path around an LLM conversation. Avoid teaching a term as a standalone slogan.
-
-## Interactive Presentation Standard
-
-For every approved concept, the interactive page should show both:
-
-- Effect: what changes in the user-visible result or developer-visible trace.
-- Mechanism: what changed in request construction, message structure, token use, context selection, output constraints, tool access, evaluation, or workflow state.
-
-Visuals and interactions should make the invisible parts of the LLM call inspectable. Prefer concrete animations, state transitions, traces, and small experiments over long static prose.
-
-## Scope
-
-This standard applies to:
-
-- Course catalog design.
-- Chapter sequencing.
-- Concept explanation docs.
-- Animation and interaction specs.
-- Evaluation criteria for whether a lesson is teachable.
-- Later implementation decisions that affect educational clarity.
-
-This standard does not approve:
-
-- Final chapter titles.
-- Lecture scripts.
-- On-screen teaching copy.
-- Example prompts or demo data.
-- Specific animation storyboards.
-- Any rendered page content under `app/`.
-
-Those artifacts still require explicit confirmation before implementation.
-
-## Assumptions
-
-- The audience has basic AI or programming literacy but may not have built an LLM system before.
-- The course should be precise enough for engineers and concrete enough for non-specialists.
-- New LLM ecosystem terms should be evaluated by their relationship to the inference interface rather than by popularity.
-- External concept research may be used to build candidate concept lists, but repository content and page content must still pass the confirmation gates in `AGENTS.md`.
-
-## Review Notes
-
-- This document records the course development principle confirmed by the user on 2026-06-22.
-- If the core teaching thesis changes, downstream architecture, delivery, quality, and release documents must be re-reviewed.
+- 2026-06-22：用户确认课程从最小 LLM 对话开始，后续概念围绕推理接口展开。
+- 2026-06-23：本文件收缩为课程产品事实记录，规则来源改为 `AGENTS.md`。

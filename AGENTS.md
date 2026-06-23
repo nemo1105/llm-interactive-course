@@ -62,8 +62,19 @@ The frontend follows the local web standard: React 19, React Router framework mo
 - 未经确认的演讲内容不得写入页面。任何章节标题、讲解文案、示例、概念分层、流程节点、动画脚本、演示数据或视觉化表达，必须先和用户完整确认后，才能进入 `app/` 中会被页面渲染的代码、数据或样式。
 - Before content is approved, pages may only contain neutral framework labels, layout regions, controls, and empty placeholders.
 - After content is approved, keep the narrative concrete: every concept should be tied back to what happens during or around an LLM conversation.
+- 所有课程文档、章节合同、动画规格、概念解释和课程目录正文必须使用中文；必要英文只保留为技术名词、API 名称、代码标识符、路径、配置字段或 metadata 字段名。
+- 课程文档和页面表达必须具体直观。确认后的课程内容应使用真实感对话、具体对象、具体数据和可观察状态变化；不得用“简单问题”“天气类问题”“抽象结果”等占位式表达替代真实示例。
+- 用户说“记住”时，必须把对应约束写入仓库文档，而不是只依赖聊天记忆；写入前必须判断它是全局规则还是特定场景规则。
+- 全局规则只能写在 `AGENTS.md` 中，不得在非 `AGENTS.md` 项目文档中重复描述；特定章节、页面、演示、mock 数据或实现取舍的规则，写入对应 lifecycle 文档。
 - Keep pages and routes orchestration-focused. Put reusable UI under `app/components/`, pure teaching data and transforms under `app/lib/`, and interactive browser-local state under `app/stores/`.
 - Keep route declarations in `app/routes.ts`, root providers and global shell in `app/root.tsx`, and Playwright specs under `e2e/specs/`.
+- 章节路由使用固定模式：章节首页为 `/chapters/NN`，章节演示页为 `/chapters/NN/demos/<demo-id>`；未确认的下一章可以预留中性占位页，但不得写入未确认课程内容。
+- 当前课程页面使用全宽布局。章节演示页仅保留单一顶部工具栏，不额外展示章节介绍区；顶部工具栏同时承载演示选择、章节导航、步骤进度、步骤说明和步进操作，不再额外设置底部固定操作条或右侧吸顶步骤卡片；演示主体优先采用左右两侧区域：左侧展示真实聊天效果，右侧展示标准时序图；时序图消息标签通过 hover/focus 查看实际传输数据，多种 API 格式由 payload 浮层右上角切换按钮单一展示。
+- 所有演示必须可步进；左侧对话状态和右侧时序图进度必须由同一个 step 游标驱动。右侧可能对应左侧一个状态下的多步，每一步都必须逐步出现，不能一次性全部展示；右侧当前事件必须明确对应左侧某个消息块，并在步进时让该消息块保持可见和高亮。
+- 左右分栏演示使用固定工作台布局，页面主体不承担演示内容的垂直滚动；左侧聊天面板和右侧时序图面板各自固定在主体区域内，仅内部内容区域滚动。聊天消息少时自然从顶部排列，消息多到溢出时，当前事件对应气泡应靠近可视区底部；右侧时序图新增事件只滚动右侧内部容器，不得改变顶部步进按钮位置或带走左侧关键聊天内容。
+- 标准时序图默认采用参与者、生命线和横向消息线样式；流程图和节点图默认使用成熟图组件或库，不得在已有成熟组件能满足需求时手写低质量图形系统。
+- 章节演示必须优先通过 JSON 配置驱动通用演示播放器；新增章节特性应升级基础播放器、类型和校验能力，不得在章节组件中重造一套演示运行时。
+- 教学界面中的数据弹窗、解释浮层和辅助信息面板必须智能利用视口空间，优先保证信息完整可读、贴近当前教学对象、不遮挡关键消息线或操作控件；可使用上下左右任一合理位置，长内容应在浮层内部滚动。
 - Prefer visual and interactive explanation over long static prose. Text on screen should be short, purposeful, and connected to the current interaction.
 - Use `AGENTS.md` as the local entry point into the Harness Engineering skill pack; keep non-`AGENTS.md` project docs focused on repo-specific facts, lifecycle outputs, and event evidence.
 - 凡技能文档中已经定义的通用流程规范、阶段路由、交付约束或方法论说明，项目侧文档均不应重复描述。项目文档应聚焦仓库本地事实、业务与技术决策、阶段产物及事件证据；可复用的通用流程要求统一以对应技能文档与 AGENTS.md 为准。

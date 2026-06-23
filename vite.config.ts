@@ -4,4 +4,10 @@ import { defineConfig } from "vite";
 
 export default defineConfig({
   plugins: [...reactRouter(), ...tailwindcss()],
+  optimizeDeps: {
+    exclude: ["lucide-react"],
+  },
+  resolve: {
+    dedupe: ["react", "react-dom"],
+  },
 });

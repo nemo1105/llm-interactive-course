@@ -23,7 +23,7 @@ export default function HomeRoute() {
   return (
     <main className="min-h-screen scroll-smooth bg-sky-50 text-slate-950">
       <header className="sticky top-0 z-20 border-b border-sky-100 bg-sky-50/95 backdrop-blur">
-        <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+        <nav className="flex h-16 w-full items-center justify-between px-4 sm:px-6 lg:px-10">
           <a className="text-sm font-semibold text-sky-950" href="#top">
             {landingContent.courseName}
           </a>
@@ -43,11 +43,11 @@ export default function HomeRoute() {
         id="top"
       >
         <div className="absolute inset-0 -z-10 bg-[linear-gradient(rgba(15,118,110,0.12)_1px,transparent_1px),linear-gradient(90deg,rgba(14,165,233,0.12)_1px,transparent_1px)] bg-[size:48px_48px]" />
-        <div className="absolute inset-x-0 top-24 -z-10 mx-auto h-px max-w-5xl bg-sky-400/35" />
+        <div className="absolute inset-x-0 top-24 -z-10 h-px bg-sky-400/35" />
         <div className="absolute left-[12%] top-40 -z-10 hidden h-px w-[76%] rotate-6 bg-teal-600/20 md:block" />
         <div className="absolute left-[18%] top-72 -z-10 hidden h-px w-[66%] -rotate-3 bg-orange-500/25 md:block" />
 
-        <div className="mx-auto grid min-h-[calc(100vh-4rem)] max-w-7xl content-center gap-10 px-4 py-16 sm:px-6 lg:px-8">
+        <div className="grid min-h-[calc(100vh-4rem)] w-full content-center gap-10 px-4 py-16 sm:px-6 lg:px-10">
           <div className="max-w-4xl">
             <div className="mb-6 inline-flex items-center gap-2 rounded-md border border-teal-200 bg-white/75 px-3 py-2 text-sm font-medium text-teal-900 shadow-sm">
               <BookOpenCheck aria-hidden="true" className="size-4" />
@@ -100,7 +100,7 @@ export default function HomeRoute() {
       </section>
 
       <section className="border-b border-sky-100 bg-white py-16" id="value">
-        <div className="mx-auto grid max-w-7xl gap-6 px-4 sm:px-6 lg:grid-cols-3 lg:px-8">
+        <div className="grid w-full gap-6 px-4 sm:px-6 lg:grid-cols-3 lg:px-10">
           <div>
             <p className="text-sm font-semibold text-sky-700">Course value</p>
             <h2 className="mt-2 text-3xl font-semibold text-slate-950">课程价值</h2>
@@ -123,7 +123,7 @@ export default function HomeRoute() {
       </section>
 
       <section className="border-b border-sky-100 bg-white py-16" id="outline">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="w-full px-4 sm:px-6 lg:px-10">
           <div className="max-w-2xl">
             <p className="text-sm font-semibold text-sky-700">Outline</p>
             <h2 className="mt-2 text-3xl font-semibold text-slate-950">课程大纲</h2>

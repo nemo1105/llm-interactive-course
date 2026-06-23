@@ -1,8 +1,9 @@
-# Product Documents
+# 产品文档
 
-Product intent documents for the LLM interactive share live here.
+LLM 交互分享的课程产品意图文档放在这里。
 
-## Index
+## 索引
 
-- [Course Development Standard](course-development-standard.md): confirmed teaching thesis, concept explanation contract, ordering rules, and scope boundaries for later course work.
-- [Course Catalog](course-catalog.md): accepted chapter sequence with teaching goals and full knowledge points for the LLM and agent fundamentals course.
+- [课程开发事实记录](course-development-standard.md)：已确认的课程产品事实、取舍和下游章节引用背景。
+- [课程目录](course-catalog.md)：已接受的章节顺序、教学目标和 LLM 与 agent 基础课程的完整知识点。
+- [第一章：最小的一次 LLM 对话](chapters/01-minimal-llm-conversation.md)：已接受的第一章内容合同和页面实现边界。
