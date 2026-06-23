@@ -557,7 +557,7 @@ test("reserves the next chapter route without unconfirmed content", async ({ pag
   await page.goto("/chapters/02");
 
   await expect(page.getByRole("heading", { name: "第二章" })).toBeVisible();
-  await expect(page.getByText("具体课程内容确认后再写入页面")).toBeVisible();
+  await expect(page.getByText("这一页会在课程推进时承接后续互动体验")).toBeVisible();
   await expect(page.getByText("token")).toHaveCount(0);
   await expect(page.getByText("RAG")).toHaveCount(0);
 });

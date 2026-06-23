@@ -7,7 +7,7 @@ export function meta() {
     { title: "第二章 | LLM 技术全景课" },
     {
       name: "description",
-      content: "第二章预留路由，内容待确认。",
+      content: "第二章后续内容页面。",
     },
   ];
 }
@@ -31,12 +31,12 @@ export default function ChapterTwoRoute() {
       </header>
 
       <section className="w-full px-4 py-10 sm:px-6 lg:px-10">
-        <p className="text-sm font-semibold text-slate-500">章节预留</p>
+        <p className="text-sm font-semibold text-slate-500">后续内容</p>
         <h1 className="mt-3 text-4xl font-semibold tracking-normal text-slate-950">
           第二章
         </h1>
         <p className="mt-4 max-w-3xl text-base leading-7 text-slate-600">
-          这个路由已经按固定章节模式预留，具体课程内容确认后再写入页面。
+          这一页会在课程推进时承接后续互动体验。
         </p>
       </section>
     </main>
