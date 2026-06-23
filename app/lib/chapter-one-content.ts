@@ -14,6 +14,8 @@ export type ChapterOneContent = {
 
 const apiModel = "gpt-5.5";
 const systemInstruction = "You are a helpful assistant.";
+const directConversationId = "001";
+const toolConversationId = "002";
 
 const directQuestion =
   "我这段话有点绕，帮我改得更清楚：我们明天可能需要稍微提前一点到会议室，因为投影设备可能要调试。";
@@ -59,6 +61,7 @@ const weatherToolParameters = {
     },
   },
   required: ["city", "date", "time_range"],
+  additionalProperties: false,
 };
 
 const chatWeatherTool = {
@@ -75,6 +78,7 @@ const responsesWeatherTool = {
   name: "get_weather",
   description: "读取指定城市某个时间段的天气预报",
   parameters: weatherToolParameters,
+  strict: true,
 };
 
 const chatWeatherToolCall = {
@@ -84,6 +88,15 @@ const chatWeatherToolCall = {
     name: "get_weather",
     arguments: JSON.stringify(weatherToolArguments),
   },
+};
+
+const responsesWeatherFunctionCall = {
+  type: "function_call",
+  id: "fc_ch01_weather",
+  call_id: "call_weather_shanghai",
+  name: "get_weather",
+  arguments: JSON.stringify(weatherToolArguments),
+  status: "completed",
 };
 
 function json(value: JsonValue): JsonValue {
@@ -160,12 +173,11 @@ function responsesTextResponse(id: string, messageId: string, answer: string) {
       },
     ],
     parallel_tool_calls: true,
-    previous_response_id: null,
     reasoning: {
       effort: null,
       summary: null,
     },
-    store: true,
+    store: false,
     temperature: 1.0,
     text: {
       format: {
@@ -219,6 +231,19 @@ const directRequestVariants = [
       model: apiModel,
       instructions: systemInstruction,
       input: directQuestion,
+      store: false,
+    }),
+  },
+] satisfies PayloadSpec["variants"];
+
+const directAppMessageVariants = [
+  {
+    id: "direct-app-message",
+    label: "应用内部 JSON",
+    language: "json",
+    content: json({
+      conversation_id: directConversationId,
+      message: directQuestion,
     }),
   },
 ] satisfies PayloadSpec["variants"];
@@ -269,6 +294,19 @@ const weatherInitialRequestVariants = [
       tools: [responsesWeatherTool],
       input: weatherQuestion,
       tool_choice: "auto",
+      store: false,
+    }),
+  },
+] satisfies PayloadSpec["variants"];
+
+const weatherAppMessageVariants = [
+  {
+    id: "weather-app-message",
+    label: "应用内部 JSON",
+    language: "json",
+    content: json({
+      conversation_id: toolConversationId,
+      message: weatherQuestion,
     }),
   },
 ] satisfies PayloadSpec["variants"];
@@ -322,23 +360,13 @@ const weatherToolCallResponseVariants = [
       instructions: systemInstruction,
       max_output_tokens: null,
       model: apiModel,
-      output: [
-        {
-          type: "function_call",
-          id: "fc_ch01_weather",
-          call_id: "call_weather_shanghai",
-          name: "get_weather",
-          arguments: JSON.stringify(weatherToolArguments),
-          status: "completed",
-        },
-      ],
+      output: [responsesWeatherFunctionCall],
       parallel_tool_calls: true,
-      previous_response_id: null,
       reasoning: {
         effort: null,
         summary: null,
       },
-      store: true,
+      store: false,
       temperature: 1.0,
       text: {
         format: {
@@ -346,12 +374,7 @@ const weatherToolCallResponseVariants = [
         },
       },
       tool_choice: "auto",
-      tools: [
-        {
-          ...responsesWeatherTool,
-          strict: true,
-        },
-      ],
+      tools: [responsesWeatherTool],
       top_p: 1.0,
       truncation: "disabled",
       usage: {
@@ -380,6 +403,10 @@ const weatherFollowupRequestVariants = [
       model: apiModel,
       messages: [
         {
+          role: "system",
+          content: systemInstruction,
+        },
+        {
           role: "user",
           content: weatherQuestion,
         },
@@ -402,14 +429,22 @@ const weatherFollowupRequestVariants = [
     language: "json",
     content: json({
       model: apiModel,
-      previous_response_id: "resp_ch01_weather_call",
+      instructions: systemInstruction,
+      tools: [responsesWeatherTool],
       input: [
+        {
+          role: "user",
+          content: weatherQuestion,
+        },
+        responsesWeatherFunctionCall,
         {
           type: "function_call_output",
           call_id: "call_weather_shanghai",
           output: JSON.stringify(weatherToolResult),
         },
       ],
+      tool_choice: "auto",
+      store: false,
     }),
   },
 ] satisfies PayloadSpec["variants"];
@@ -427,7 +462,7 @@ const weatherFinalResponseVariants = [
     language: "json",
     content: json({
       ...responsesTextResponse("resp_ch01_weather_final", "msg_ch01_weather_final", weatherAnswer),
-      previous_response_id: "resp_ch01_weather_call",
+      tools: [responsesWeatherTool],
     }),
   },
 ] satisfies PayloadSpec["variants"];
@@ -523,7 +558,7 @@ const directDemo = {
     },
   ],
   payloads: [
-    payload("direct-send-message", "发送消息", directRequestVariants),
+    payload("direct-send-message", "发送消息：应用接收用户消息", directAppMessageVariants),
     payload("direct-model-request", "请求大模型", directRequestVariants),
     payload("direct-model-response", "返回模型响应", directResponseVariants),
     payload("direct-ui-update", "展示回答：应用服务器写回界面", [
@@ -532,8 +567,9 @@ const directDemo = {
         label: "应用内部 JSON",
         language: "json",
         content: json({
-          conversation_id: "chapter-01-direct",
+          conversation_id: directConversationId,
           append_message: {
+            id: "002",
             role: "assistant",
             content: directAnswer,
           },
@@ -727,7 +763,7 @@ const toolCallDemo = {
     },
   ],
   payloads: [
-    payload("tool-send-message", "发送消息", weatherInitialRequestVariants),
+    payload("tool-send-message", "发送消息：应用接收用户消息", weatherAppMessageVariants),
     payload("tool-initial-request", "请求大模型", weatherInitialRequestVariants),
     payload("tool-call-response", "返回工具调用", weatherToolCallResponseVariants),
     payload("tool-execute-input", "执行 get_weather：应用服务器调用工具", [
@@ -757,8 +793,9 @@ const toolCallDemo = {
         label: "应用内部 JSON",
         language: "json",
         content: json({
-          conversation_id: "chapter-01-tool-call",
+          conversation_id: toolConversationId,
           append_message: {
+            id: "002",
             role: "assistant",
             content: weatherAnswer,
           },

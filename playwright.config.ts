@@ -1,8 +1,14 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:5173";
+const host = "127.0.0.1";
+const localPort = process.env.PLAYWRIGHT_PORT ?? "5173";
+const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? `http://${host}:${localPort}`;
+const shouldStartLocalServer = !process.env.PLAYWRIGHT_BASE_URL;
 
 export default defineConfig({
+  expect: {
+    timeout: 10_000,
+  },
   testDir: "./e2e/specs",
   fullyParallel: true,
   reporter: process.env.CI ? "html" : "list",
@@ -10,12 +16,14 @@ export default defineConfig({
     baseURL,
     trace: "on-first-retry",
   },
-  webServer: {
-    command: "pnpm run dev --host 127.0.0.1",
-    url: baseURL,
-    reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
-  },
+  webServer: shouldStartLocalServer
+    ? {
+        command: `pnpm run dev --host ${host} --port ${localPort} --strictPort`,
+        reuseExistingServer: false,
+        timeout: 120_000,
+        url: baseURL,
+      }
+    : undefined,
   projects: [
     {
       name: "chromium",

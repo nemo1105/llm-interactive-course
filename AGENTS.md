@@ -78,6 +78,8 @@ The frontend follows the local web standard: React 19, React Router framework mo
 - Prefer visual and interactive explanation over long static prose. Text on screen should be short, purposeful, and connected to the current interaction.
 - Use `AGENTS.md` as the local entry point into the Harness Engineering skill pack; keep non-`AGENTS.md` project docs focused on repo-specific facts, lifecycle outputs, and event evidence.
 - 凡技能文档中已经定义的通用流程规范、阶段路由、交付约束或方法论说明，项目侧文档均不应重复描述。项目文档应聚焦仓库本地事实、业务与技术决策、阶段产物及事件证据；可复用的通用流程要求统一以对应技能文档与 AGENTS.md 为准。
+- 人维护的 lifecycle 文档应记录意图、原则、边界、决策和证据；不要重复代码和测试已经约束的具体实现字段、JSON 形状或代码级细节，除非它们是必须经人审阅的外部接口合同。
+- 不要把已经删除的实现细节、被否定的字段名或历史错误写成长期文档规则，也不要用字段黑名单记录“曾经错过什么”。应把反馈转化为正向原则和当前合同；只有当实现历史能帮助未来决策时，才把它作为 retrospective 证据记录。
 - Keep this file concise and link out to detailed docs instead of duplicating templates.
 - Keep human-maintained docs portable; avoid absolute local paths or editor-specific URIs.
 - When new user information conflicts with current docs or assumptions, confirm the conflict before concluding that the rule changed or the implementation is wrong.

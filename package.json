@@ -9,7 +9,7 @@
     "typecheck": "react-router typegen && tsc --noEmit",
     "docs:lint": "node scripts/docs-lint.mjs",
     "test:unit": "vitest run",
-    "test:e2e": "playwright test",
+    "test:e2e": "node scripts/playwright-isolated.mjs",
     "verify:iteration": "pnpm run docs:lint && pnpm run typecheck && pnpm run test:unit && pnpm run test:e2e"
   },
   "dependencies": {

@@ -267,19 +267,17 @@ test("steps through the direct conversation with synchronized chat and sequence 
   await expect(page.getByLabel("传输数据格式切换")).toHaveCount(0);
 
   let payload = await hoverTransferPayload(page, flow, "发送消息");
-  await expect(payload).toContainText("发送消息");
+  await expect(payload).toContainText("发送消息：应用接收用户消息");
   await expectNoPayloadFormatHeader(payload);
   await expectJsonTreePayload(payload);
-  await expect(payload).toContainText('"messages"');
-  await expect(payload).toContainText('"role"');
-  await expect(payload.getByLabel("传输数据格式切换")).toBeVisible();
-  await expectPopoverClearOfTopToolbar(page, payload);
-
-  await selectPayloadFormat(payload, "Responses API");
-  await expectNoPayloadFormatHeader(payload);
-  await expect(payload).toContainText('"instructions"');
-  await expect(payload).toContainText('"input"');
+  await expect(payload).toContainText('"conversation_id": "001"');
+  await expect(payload).toContainText('"message": "我这段话有点绕');
+  await expect(payload).toContainText("我这段话有点绕");
+  await expect(payload).not.toContainText('"model"');
   await expect(payload).not.toContainText('"messages"');
+  await expect(payload).not.toContainText('"input"');
+  await expect(payload.getByLabel("传输数据格式切换")).toHaveCount(0);
+  await expectPopoverClearOfTopToolbar(page, payload);
   await dismissPayload(page);
 
   await page.getByRole("button", { name: /下一步/ }).click();
@@ -290,6 +288,14 @@ test("steps through the direct conversation with synchronized chat and sequence 
   await expect(payload).toContainText("请求大模型");
   await expectNoPayloadFormatHeader(payload);
   await expect(payload).toContainText('"model": "gpt-5.5"');
+  await expect(payload).toContainText('"messages"');
+  await expect(payload.getByLabel("传输数据格式切换")).toBeVisible();
+  await selectPayloadFormat(payload, "Responses API");
+  await expectNoPayloadFormatHeader(payload);
+  await expect(payload).toContainText('"instructions"');
+  await expect(payload).toContainText('"input"');
+  await expect(payload).toContainText('"store": false');
+  await expect(payload).not.toContainText('"messages"');
   await dismissPayload(page);
 
   await page.getByRole("button", { name: /下一步/ }).click();
@@ -331,10 +337,16 @@ test("steps through the tool-call demo without revealing future flow events", as
   await expect(flow).not.toContainText("执行 get_weather");
   await expect(flow.getByLabel("时序图底部参与者")).toHaveCount(0);
   let payload = await hoverTransferPayload(page, flow, "发送消息");
-  await expect(payload).toContainText("发送消息");
+  await expect(payload).toContainText("发送消息：应用接收用户消息");
   await expectNoPayloadFormatHeader(payload);
-  await expect(payload).toContainText('"messages"');
-  await expect(payload).toContainText('"tools"');
+  await expectJsonTreePayload(payload);
+  await expect(payload).toContainText('"conversation_id": "002"');
+  await expect(payload).toContainText('"message": "明天下午我要去上海客户现场');
+  await expect(payload).toContainText("明天下午我要去上海客户现场");
+  await expect(payload).not.toContainText('"model"');
+  await expect(payload).not.toContainText('"messages"');
+  await expect(payload).not.toContainText('"tools"');
+  await expect(payload.getByLabel("传输数据格式切换")).toHaveCount(0);
   await dismissPayload(page);
 
   await page.getByRole("button", { name: /下一步/ }).click();
@@ -344,7 +356,13 @@ test("steps through the tool-call demo without revealing future flow events", as
   payload = await hoverTransferPayload(page, flow, "请求大模型");
   await expect(payload).toContainText("请求大模型");
   await expectNoPayloadFormatHeader(payload);
+  await expect(payload).toContainText('"model": "gpt-5.5"');
   await expect(payload).toContainText('"tools"');
+  await selectPayloadFormat(payload, "Responses API");
+  await expectNoPayloadFormatHeader(payload);
+  await expect(payload).toContainText('"store": false');
+  await expect(payload).toContainText('"input"');
+  await expect(payload).not.toContainText('"messages"');
   await dismissPayload(page);
 
   await page.getByRole("button", { name: /下一步/ }).click();
@@ -395,6 +413,10 @@ test("steps through the tool-call demo without revealing future flow events", as
   await selectPayloadFormat(payload, "Responses API");
   await expectNoPayloadFormatHeader(payload);
   await expect(payload).toContainText('"function_call_output"');
+  await expect(payload).toContainText('"type": "function_call"');
+  await expect(payload).toContainText('"name": "get_weather"');
+  await expect(payload).toContainText('"store": false');
+  await expect(payload).not.toContainText('"previous_response_id"');
   await dismissPayload(page);
 
   await page.getByRole("button", { name: /下一步/ }).click();
@@ -430,6 +452,7 @@ test("keeps the payload popover inside a short viewport", async ({ page }) => {
   await selectPayloadFormat(payload, "Responses API");
   await expectNoPayloadFormatHeader(payload);
   await expect(payload).toContainText('"object": "response"');
+  await expect(payload).not.toContainText('"previous_response_id"');
   await expectPopoverFitsViewport(page, payload);
 });
 

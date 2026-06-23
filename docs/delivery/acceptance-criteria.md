@@ -36,7 +36,8 @@ next_action: 用自动化测试验证每条验收标准。
 ## 内容验收
 
 - 页面包含具体城市、日期、温度区间、降水概率和真实感最终回答样例。
-- payload 包含完整模型请求、模型响应、工具调用参数、工具返回结果和界面状态更新；模型 API 传输需要区分 Chat Completions 和 Responses API 两种官方格式，且同一时刻只展示当前 payload 浮层右上角选中的一种。
+- payload 包含应用内部消息、完整模型请求、模型响应、工具调用参数、工具返回结果和界面状态更新；首条用户到应用的 `发送消息` payload 必须只表达应用会话标识和原始用户消息内容，且不展示模型 API 格式切换。
+- 模型 API 传输需要区分 Chat Completions 和 Responses API 两种官方格式，且同一时刻只展示当前 payload 浮层右上角选中的一种；Responses API 工具结果回写请求必须采用无状态上下文重放方式，不依赖平台托管的上一轮响应指针。
 - payload 浮层只展示当前传输标题、弱化后的格式切换入口和实际数据；不得展示 `Chat Completions request`、`Responses API response`、`json` 这类冗余格式标题或语言标签。
 - `DemoSpec` 中 JSON payload 使用结构化 JSON 值，不使用预格式化 JSON 字符串作为主要数据形态。
 - 第一章内容数据使用 `DemoSpec`，并包含聊天帧、左侧聚焦消息、时序参与者、时序消息、payload 和 step 序列。

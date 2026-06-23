@@ -61,25 +61,72 @@ describe("chapterOneContent", () => {
     expect(executeStep.activePayload?.id).toBe("tool-execute-input");
   });
 
-  it("keeps the first sequence message tied to official API request formats", () => {
+  it("keeps application message intake separate from model API requests", () => {
     const directDemo = getChapterDemo("direct");
     const sendMessage = directDemo.messages.find((message) => message.id === "direct-user-server");
     const sendPayload = directDemo.payloads.find((payload) => payload.id === "direct-send-message");
+    const modelRequestPayload = directDemo.payloads.find(
+      (payload) => payload.id === "direct-model-request",
+    );
 
     expect(directDemo.actors.map((actor) => actor.label)).toEqual(["用户", "应用服务器", "大模型"]);
     expect(sendMessage?.label).toBe("发送消息");
-    expect(sendPayload?.variants.map((variant) => variant.label)).toEqual([
+    expect(sendPayload?.variants.map((variant) => variant.label)).toEqual(["应用内部 JSON"]);
+    expect(sendPayload?.variants[0].content).toEqual({
+      conversation_id: "001",
+      message: directQuestionText(),
+    });
+    expect(JSON.stringify(sendPayload)).not.toContain('"model"');
+    expect(JSON.stringify(sendPayload)).not.toContain('"messages"');
+    expect(JSON.stringify(sendPayload)).not.toContain('"input"');
+
+    expect(modelRequestPayload?.variants.map((variant) => variant.label)).toEqual([
       "Chat Completions request",
       "Responses API request",
     ]);
-    expect(sendPayload?.variants[0].content).toMatchObject({
+    expect(modelRequestPayload?.variants[0].content).toMatchObject({
       messages: expect.any(Array),
       model: "gpt-5.5",
     });
-    expect(sendPayload?.variants[1].content).toMatchObject({
+    expect(modelRequestPayload?.variants[1].content).toMatchObject({
       input: directQuestionText(),
       instructions: "You are a helpful assistant.",
+      store: false,
     });
+  });
+
+  it("uses stateless Responses API context when writing back tool results", () => {
+    const toolDemo = getChapterDemo("tool-call");
+    const writebackPayload = toolDemo.payloads.find(
+      (payload) => payload.id === "tool-followup-request",
+    );
+    const responsesVariant = writebackPayload?.variants.find((variant) =>
+      variant.label.includes("Responses API"),
+    );
+
+    expect(responsesVariant?.content).toMatchObject({
+      model: "gpt-5.5",
+      instructions: "You are a helpful assistant.",
+      store: false,
+      tools: expect.any(Array),
+      input: [
+        {
+          role: "user",
+          content: weatherQuestionText(),
+        },
+        {
+          type: "function_call",
+          call_id: "call_weather_shanghai",
+          name: "get_weather",
+        },
+        {
+          type: "function_call_output",
+          call_id: "call_weather_shanghai",
+          output: expect.any(String),
+        },
+      ],
+    });
+    expect(JSON.stringify(responsesVariant?.content)).not.toContain("previous_response_id");
   });
 
   it("uses teaching-first JSON tree expansion defaults", () => {
@@ -125,4 +172,8 @@ describe("chapterOneContent", () => {
 
 function directQuestionText(): string {
   return "我这段话有点绕，帮我改得更清楚：我们明天可能需要稍微提前一点到会议室，因为投影设备可能要调试。";
+}
+
+function weatherQuestionText(): string {
+  return "明天下午我要去上海客户现场，出门要带伞吗？";
 }
