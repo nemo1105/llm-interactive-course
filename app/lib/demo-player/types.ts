@@ -32,14 +32,37 @@ export type ConversationFrame = {
   messages: DemoMessage[];
 };
 
-export type PayloadVariantSpec = {
+export type JsonValue =
+  | string
+  | number
+  | boolean
+  | null
+  | JsonValue[]
+  | { [key: string]: JsonValue };
+
+export type PayloadExpansionSpec = {
+  autoExpandDepth?: number;
+  defaultCollapsedKeys?: string[];
+  defaultExpandedKeys?: string[];
+};
+
+export type JsonPayloadVariantSpec = PayloadExpansionSpec & {
   id: string;
   label: string;
-  language: "json" | "text";
+  language: "json";
+  content: JsonValue;
+};
+
+export type TextPayloadVariantSpec = {
+  id: string;
+  label: string;
+  language: "text";
   content: string;
 };
 
-export type PayloadSpec = {
+export type PayloadVariantSpec = JsonPayloadVariantSpec | TextPayloadVariantSpec;
+
+export type PayloadSpec = PayloadExpansionSpec & {
   id: string;
   title: string;
   variants: PayloadVariantSpec[];

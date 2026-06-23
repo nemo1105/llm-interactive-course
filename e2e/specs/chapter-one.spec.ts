@@ -201,6 +201,21 @@ async function expectNoPayloadFormatHeader(payload: Locator) {
   await expect(payload).not.toContainText("json");
 }
 
+async function expectJsonTreePayload(payload: Locator) {
+  await expect(payload.getByLabel("JSON 树传输数据")).toBeVisible();
+}
+
+async function expectJsonKeyCollapsedUntilOpened(
+  payload: Locator,
+  key: string,
+  nestedKey: string,
+) {
+  await expect(payload).toContainText(`"${key}"`);
+  await expect(payload).not.toContainText(`"${nestedKey}"`);
+  await payload.getByText(new RegExp(`^"${key}":\\s*$`)).first().click();
+  await expect(payload).toContainText(`"${nestedKey}"`);
+}
+
 test("renders the first chapter homepage with fixed navigation", async ({ page }) => {
   await page.goto("/chapters/01");
 
@@ -254,7 +269,9 @@ test("steps through the direct conversation with synchronized chat and sequence 
   let payload = await hoverTransferPayload(page, flow, "发送消息");
   await expect(payload).toContainText("发送消息");
   await expectNoPayloadFormatHeader(payload);
+  await expectJsonTreePayload(payload);
   await expect(payload).toContainText('"messages"');
+  await expect(payload).toContainText('"role"');
   await expect(payload.getByLabel("传输数据格式切换")).toBeVisible();
   await expectPopoverClearOfTopToolbar(page, payload);
 
@@ -282,8 +299,10 @@ test("steps through the direct conversation with synchronized chat and sequence 
   payload = await hoverTransferPayload(page, flow, "返回模型响应");
   await expect(payload).toContainText("返回模型响应");
   await expectNoPayloadFormatHeader(payload);
+  await expectJsonTreePayload(payload);
   await expect(payload).toContainText('"object": "chat.completion"');
   await expect(payload).toContainText('"choices"');
+  await expectJsonKeyCollapsedUntilOpened(payload, "usage", "prompt_tokens");
   await dismissPayload(page);
 
   await page.getByRole("button", { name: /下一步/ }).click();

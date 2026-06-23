@@ -1,4 +1,4 @@
-import type { DemoSpec, PayloadSpec } from "./demo-player/types";
+import type { DemoSpec, JsonValue, PayloadSpec } from "./demo-player/types";
 
 export type ChapterDemoId = "direct" | "tool-call";
 
@@ -86,8 +86,8 @@ const chatWeatherToolCall = {
   },
 };
 
-function json(value: unknown): string {
-  return JSON.stringify(value, null, 2);
+function json(value: JsonValue): JsonValue {
+  return value;
 }
 
 function payload(id: string, title: string, variants: PayloadSpec["variants"]): PayloadSpec {

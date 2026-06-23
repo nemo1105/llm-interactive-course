@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
 
+import {
+  shouldExpandPayloadJsonNode,
+} from "../app/lib/demo-player/payload-tree";
 import { buildDemoPlayerState, validateDemoSpec } from "../app/lib/demo-player/player";
 import { chapterOneContent, getChapterDemo } from "../app/lib/chapter-one-content";
 
@@ -26,6 +29,13 @@ describe("chapterOneContent", () => {
         const frame = demo.frames.find((candidate) => candidate.id === step.leftFrameId);
 
         expect(frame?.messages.some((message) => message.id === step.focusMessageId)).toBe(true);
+      }
+      for (const payload of demo.payloads) {
+        for (const variant of payload.variants) {
+          if (variant.language === "json") {
+            expect(typeof variant.content).not.toBe("string");
+          }
+        }
       }
     }
   });
@@ -62,10 +72,26 @@ describe("chapterOneContent", () => {
       "Chat Completions request",
       "Responses API request",
     ]);
-    expect(sendPayload?.variants[0].content).toContain('"messages"');
-    expect(sendPayload?.variants[0].content).toContain('"model": "gpt-5.5"');
-    expect(sendPayload?.variants[1].content).toContain('"instructions"');
-    expect(sendPayload?.variants[1].content).toContain('"input"');
+    expect(sendPayload?.variants[0].content).toMatchObject({
+      messages: expect.any(Array),
+      model: "gpt-5.5",
+    });
+    expect(sendPayload?.variants[1].content).toMatchObject({
+      input: directQuestionText(),
+      instructions: "You are a helpful assistant.",
+    });
+  });
+
+  it("uses teaching-first JSON tree expansion defaults", () => {
+    expect(shouldExpandPayloadJsonNode([], {}, 0)).toBe(true);
+    expect(shouldExpandPayloadJsonNode(["messages"], [], 1)).toBe(true);
+    expect(shouldExpandPayloadJsonNode(["choices"], [], 1)).toBe(true);
+    expect(shouldExpandPayloadJsonNode(["tool_calls"], [], 2)).toBe(true);
+    expect(shouldExpandPayloadJsonNode([0, "tool_calls"], {}, 5)).toBe(true);
+    expect(shouldExpandPayloadJsonNode(["usage"], {}, 1)).toBe(false);
+    expect(shouldExpandPayloadJsonNode(["metadata"], {}, 1)).toBe(false);
+    expect(shouldExpandPayloadJsonNode(["prompt_tokens_details"], {}, 2)).toBe(false);
+    expect(shouldExpandPayloadJsonNode(["unlisted_deep_key"], {}, 3)).toBe(false);
   });
 
   it("keeps get_weather only in the mock tool-call demo", () => {
@@ -96,3 +122,7 @@ describe("chapterOneContent", () => {
     expect(serialized).not.toMatch(/一个简单问题|天气类问题|抽象工具结果|抽象占位/);
   });
 });
+
+function directQuestionText(): string {
+  return "我这段话有点绕，帮我改得更清楚：我们明天可能需要稍微提前一点到会议室，因为投影设备可能要调试。";
+}

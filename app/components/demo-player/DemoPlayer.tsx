@@ -18,6 +18,7 @@ import type {
   SequenceMessageKind,
   SequenceMessageSpec,
 } from "../../lib/demo-player/types";
+import { PayloadJsonTree } from "./PayloadJsonTree";
 
 const actorTone: Record<SequenceActorKind, string> = {
   user: "border-sky-300 bg-sky-50 text-sky-950",
@@ -669,7 +670,8 @@ function PayloadPopover({
   const [payloadFormat, setPayloadFormat] = useState<PayloadFormat>("chat");
   const variant = payload ? selectPayloadVariant(payload, payloadFormat) : undefined;
   const showFormatToggle = payload ? hasApiFormatVariants(payload) : false;
-  const lockHeight = showFormatToggle && Boolean(anchor && anchor.maxHeight < payloadPopoverPreferredHeight);
+  const lockHeight =
+    showFormatToggle && Boolean(anchor && anchor.maxHeight < payloadPopoverPreferredHeight);
 
   useEffect(() => {
     setPayloadFormat("chat");
@@ -721,14 +723,21 @@ function PayloadPopover({
           lockHeight ? "flex-1" : "",
         ].join(" ")}
       >
-        <pre
-          className={[
-            "min-h-0 overflow-auto whitespace-pre-wrap break-words p-3 text-xs leading-5 text-slate-100",
-            lockHeight ? "flex-1" : "",
-          ].join(" ")}
-        >
-          {variant.content}
-        </pre>
+        {variant.language === "json" ? (
+          <PayloadJsonTree
+            payload={payload}
+            variant={variant}
+          />
+        ) : (
+          <pre
+            className={[
+              "min-h-0 overflow-auto whitespace-pre-wrap break-words p-3 text-xs leading-5 text-slate-100",
+              lockHeight ? "flex-1" : "",
+            ].join(" ")}
+          >
+            {variant.content}
+          </pre>
+        )}
       </section>
     </aside>
   );

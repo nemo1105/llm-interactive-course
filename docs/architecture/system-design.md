@@ -27,7 +27,7 @@ next_action: 按本设计维护通用 DemoPlayer，并将后续演示迁移到 J
 - `app/routes.ts` 作为路由事实来源，声明 `/chapters/01`、`/chapters/01/demos/direct`、`/chapters/01/demos/tool-call` 和 `/chapters/02`。
 - 路由模块只组合页面和 metadata。
 - 通用播放器类型、校验和派生逻辑放在 `app/lib/demo-player/`。
-- 通用播放器 UI 放在 `app/components/demo-player/`，右侧渲染标准时序图：顶部参与者、竖向生命线、横向消息线、消息标签，以及长时序下的底部参与者行。
+- 通用播放器 UI 放在 `app/components/demo-player/`，右侧渲染标准时序图：顶部参与者、竖向生命线、横向消息线、消息标签、可折叠 JSON payload 树，以及长时序下的底部参与者行。
 - 第一章结构化内容放在 `app/lib/`，以 `DemoSpec` 配置章节首页、演示页、聊天帧、参与者、时序消息、payload、左侧聚焦消息和 step 序列，由 Vitest 覆盖引用完整性、步进顺序和具体示例。
 - 第一章页面组件放在 `app/components/chapter-one/`，只负责章节首页和把对应 `DemoSpec` 交给通用播放器。
 - 不引入 React Query、Zustand、API client、环境变量或持久化状态。
@@ -42,7 +42,7 @@ next_action: 按本设计维护通用 DemoPlayer，并将后续演示迁移到 J
 6. 用户点击 `下一步` 后，如果当前高亮消息线因为时序图变高而落到右侧可见区域外，播放器只滚动右侧时序图内部容器，让当前消息线进入可见区域。
 7. 同一次 step 更新必须高亮左侧聚焦消息；聊天内容不足以滚动时，消息列表自然从顶部排列，内容溢出时才滚动，并让聚焦消息尽量靠近聊天消息区域底部。
 8. 工具调用演示中，左侧可以停留在“思考中”帧，右侧继续逐步显示工具调用、执行、返回、回写和最终响应。
-9. 用户悬浮或聚焦已出现的消息标签时，消息旁浮层显示对应数据；浮层在右、左、下、上四个方向中选择最合理位置，优先利用空闲空间并避开关键消息线和顶部工具栏；Chat Completions 与 Responses API 通过 payload 浮层右上角的小型切换按钮单一展示，浮层正文只展示实际数据。
+9. 用户悬浮或聚焦已出现的消息标签时，消息旁浮层显示对应数据；浮层在右、左、下、上四个方向中选择最合理位置，优先利用空闲空间并避开关键消息线和顶部工具栏；Chat Completions 与 Responses API 通过 payload 浮层右上角的小型切换按钮单一展示，JSON 正文用可折叠树展示，默认展开教学主干字段并折叠 token 明细、metadata、annotations 等噪声字段。
 
 ## 失败与边界行为
 
@@ -57,6 +57,7 @@ next_action: 按本设计维护通用 DemoPlayer，并将后续演示迁移到 J
 - payload 浮层必须限制在当前视口内，可出现在消息标签右侧、左侧、下方或上方；定位策略优先选择可读面积更大、遮挡更少的位置，内容过长时在浮层内部滚动，不依赖页面继续向下滚动才能查看底部内容。
 - payload 浮层不得遮挡顶部工具栏；短视口下需要缩小最大高度并保持正文可滚动。
 - payload 浮层不得展示 variants 的内部 label 或 language 字段；`Chat Completions request`、`Responses API response`、`json` 等信息只作为数据选择或代码内部标识，不进入可见正文。
+- JSON payload 必须使用可折叠树渲染；默认展开 `messages`、`input`、`output`、`choices`、`message`、`content`、`tool_calls`、`function`、`arguments`、`tools` 等教学主干字段，默认折叠 `usage`、token 明细、`metadata`、`annotations`、`logprobs`、`reasoning` 等辅助字段。
 - 右侧不得退化为自由节点图；普通对话至少展示“用户、应用服务器、大模型”三类参与者。
 - 天气数据必须标明为 mock 教学数据，不得暗示来自实时服务。
 - `/` 首页测试继续覆盖占位语义，防止第一章内容意外进入首页。
