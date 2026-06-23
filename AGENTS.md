@@ -64,6 +64,8 @@ The frontend follows the local web standard: React 19, React Router framework mo
 - After content is approved, keep the narrative concrete: every concept should be tied back to what happens during or around an LLM conversation.
 - 所有课程文档、章节合同、动画规格、概念解释和课程目录正文必须使用中文；必要英文只保留为技术名词、API 名称、代码标识符、路径、配置字段或 metadata 字段名。
 - 课程文档和页面表达必须具体直观。确认后的课程内容应使用真实感对话、具体对象、具体数据和可观察状态变化；不得用“简单问题”“天气类问题”“抽象结果”等占位式表达替代真实示例。
+- 章节案例中的传输数据应清楚区分“模型通信”和“应用自定义通信”：凡是应用与大模型通信的传输，使用标准 OpenAI API 格式；其他应用内部、工具、界面或辅助传输使用应用自定义格式。为便于教学，应用自定义格式应尽量简单、直观、易理解。
+- 工具调用结果不默认限定为 JSON；可根据章节教学目标使用纯字符串、Markdown、YAML、JSON 或其他合适格式。后续章节案例可以穿插不同工具结果格式，帮助学习者理解工具结果只是应用回传给模型的上下文载体。
 - 用户说“记住”时，必须把对应约束写入仓库文档，而不是只依赖聊天记忆；写入前必须判断它是全局规则还是特定场景规则。
 - 全局规则只能写在 `AGENTS.md` 中，不得在非 `AGENTS.md` 项目文档中重复描述；特定章节、页面、演示、mock 数据或实现取舍的规则，写入对应 lifecycle 文档。
 - Keep pages and routes orchestration-focused. Put reusable UI under `app/components/`, pure teaching data and transforms under `app/lib/`, and interactive browser-local state under `app/stores/`.
@@ -96,10 +98,32 @@ The frontend follows the local web standard: React 19, React Router framework mo
 
 ## Reference Map
 
-- Repository context details: `docs/context/index.md`
-- Product intent details: `docs/product/`
-- Architecture details: `docs/architecture/`
-- Delivery details: `docs/delivery/`
-- Quality details: `docs/quality/`
-- Release details: `docs/release/`
-- Retrospective details: `docs/retrospectives/`
+- Repository context:
+  - `docs/context/index.md`: repository map, current implementation facts, working agreements.
+  - `docs/context/add-chapter-guide.md`: how to add later chapters using the shared demo architecture.
+- Product intent:
+  - `docs/product/README.md`: product document directory entry.
+  - `docs/product/course-development-standard.md`: course-wide product facts and confirmed local background.
+  - `docs/product/course-catalog.md`: accepted course sequence and chapter knowledge map.
+  - `docs/product/chapters/01-minimal-llm-conversation.md`: first chapter product content contract.
+- Architecture:
+  - `docs/architecture/README.md`: architecture document directory entry.
+  - `docs/architecture/system-design.md`: current page and demo-player system design.
+  - `docs/architecture/interface-contracts.md`: `DemoSpec`, step, payload, layout, and interaction contracts.
+  - `docs/architecture/risk-register.md`: known architecture and delivery risks.
+- Delivery planning:
+  - `docs/delivery/README.md`: delivery document directory entry.
+  - `docs/delivery/execution-plan.md`: implementation sequence and task slicing.
+  - `docs/delivery/milestone-plan.md`: milestone breakdown.
+  - `docs/delivery/acceptance-criteria.md`: accepted behavior and content checks.
+  - `docs/delivery/test-strategy.md`: unit and e2e coverage plan.
+- Quality and evals:
+  - `docs/quality/README.md`: quality document directory entry.
+  - `docs/quality/eval-plan.md`: quality evaluation plan.
+  - `docs/quality/golden-examples.md`: positive, negative, and boundary examples.
+  - `docs/quality/failure-taxonomy.md`: failure categories for review and regression triage.
+  - `docs/quality/release-readiness.md`: release readiness criteria.
+- Release:
+  - `docs/release/README.md`: release document directory entry.
+- Retrospectives:
+  - `docs/retrospectives/README.md`: retrospective document directory entry.
