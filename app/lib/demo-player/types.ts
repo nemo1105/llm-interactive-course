@@ -12,6 +12,7 @@ export type SequenceMessageKind =
   | "message"
   | "api-request"
   | "api-response"
+  | "stream"
   | "tool-call"
   | "tool-result"
   | "ui";
@@ -22,7 +23,8 @@ export type DemoMessage = {
   id: string;
   role: DemoMessageRole;
   text: string;
-  state?: "已发送" | "思考中" | "已回复" | "已写入" | "已执行";
+  state?: "已发送" | "思考中" | "生成中" | "已回复" | "已写入" | "已执行";
+  streaming?: boolean;
 };
 
 export type ConversationFrame = {
@@ -60,7 +62,17 @@ export type TextPayloadVariantSpec = {
   content: string;
 };
 
-export type PayloadVariantSpec = JsonPayloadVariantSpec | TextPayloadVariantSpec;
+export type SsePayloadVariantSpec = PayloadExpansionSpec & {
+  id: string;
+  label: string;
+  language: "sse";
+  content: string;
+};
+
+export type PayloadVariantSpec =
+  | JsonPayloadVariantSpec
+  | SsePayloadVariantSpec
+  | TextPayloadVariantSpec;
 
 export type PayloadSpec = PayloadExpansionSpec & {
   id: string;
@@ -84,6 +96,12 @@ export type SequenceMessageSpec = {
   kind: SequenceMessageKind;
   description?: string;
   payloadId?: string;
+};
+
+export type SequenceLoopSpec = {
+  id: string;
+  label: string;
+  messageIds: string[];
 };
 
 export type DemoStep = {
@@ -112,6 +130,7 @@ export type DemoSpec = {
   flowSubtitle: string;
   actors: SequenceActorSpec[];
   messages: SequenceMessageSpec[];
+  loops?: SequenceLoopSpec[];
   frames: ConversationFrame[];
   payloads: PayloadSpec[];
   steps: DemoStep[];

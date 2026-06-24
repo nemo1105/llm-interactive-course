@@ -15,10 +15,12 @@ import type {
   PayloadSpec,
   SequenceActorKind,
   SequenceActorSpec,
+  SequenceLoopSpec,
   SequenceMessageKind,
   SequenceMessageSpec,
 } from "../../lib/demo-player/types";
 import { PayloadJsonTree } from "./PayloadJsonTree";
+import { PayloadSseTree } from "./PayloadSseTree";
 
 const actorTone: Record<SequenceActorKind, string> = {
   user: "border-sky-300 bg-sky-50 text-sky-950",
@@ -57,6 +59,12 @@ const messageTone: Record<
     activeLeftArrow: "border-r-violet-600",
     activeRightArrow: "border-l-violet-600",
     activeLabel: "border-violet-500 bg-violet-50 text-violet-950",
+  },
+  stream: {
+    activeLine: "border-cyan-600",
+    activeLeftArrow: "border-r-cyan-600",
+    activeRightArrow: "border-l-cyan-600",
+    activeLabel: "border-cyan-500 bg-cyan-50 text-cyan-950",
   },
   "tool-call": {
     activeLine: "border-amber-600",
@@ -102,6 +110,7 @@ const payloadPopoverMinWidth = 320;
 const payloadPopoverPreferredHeight = 420;
 const payloadPopoverPreferredWidth = 544;
 const chatMessageBottomGap = 24;
+const payloadFormatStorageKey = "llm-interactive-share.payload-format";
 
 export function DemoPlayer({ spec, state }: { spec: DemoSpec; state: DemoPlayerState }) {
   const payloadById = useMemo(
@@ -217,6 +226,12 @@ function MessageBubble({
         ) : null}
       </div>
       <p className="mt-2 break-words text-sm leading-6 text-slate-800">{message.text}</p>
+      {message.streaming ? (
+        <span
+          aria-label="助手回复正在流式生成"
+          className="mt-2 inline-block h-4 w-1 animate-pulse rounded-full bg-emerald-500 align-text-bottom"
+        />
+      ) : null}
     </div>
   );
 }
@@ -332,6 +347,7 @@ function SequencePane({
           activeActorIds={state.activeActorIds}
           activeMessageId={state.activeMessageId}
           activeMessageRef={activeMessageRef}
+          loops={state.visibleLoops}
           messages={state.visibleMessages}
           payloadById={payloadById}
           onHidePayload={scheduleHidePayload}
@@ -361,8 +377,8 @@ function PayloadFormatToggle({
 }) {
   const wrapperClass =
     tone === "dark"
-      ? "inline-flex shrink-0 rounded border border-white/10 bg-white/5 p-0.5"
-      : "inline-flex shrink-0 rounded border border-slate-200 bg-slate-50 p-0.5";
+      ? "inline-flex shrink-0 rounded-sm border border-white/10 bg-white/5 p-0.5"
+      : "inline-flex shrink-0 rounded-sm border border-slate-200 bg-slate-50 p-0.5";
   const inactiveClass =
     tone === "dark" ? "text-slate-400 hover:bg-white/10" : "text-slate-500 hover:bg-white";
 
@@ -371,7 +387,7 @@ function PayloadFormatToggle({
       <button
         aria-pressed={format === "chat"}
         className={[
-          "rounded-sm px-1.5 py-0.5 text-[0.6rem] font-medium leading-none transition-colors",
+          "rounded-[3px] px-1.5 py-0.5 text-[10px] font-medium leading-none transition-colors",
           format === "chat" ? "bg-white text-slate-950 shadow-sm" : inactiveClass,
         ].join(" ")}
         onClick={() => onChange("chat")}
@@ -382,7 +398,7 @@ function PayloadFormatToggle({
       <button
         aria-pressed={format === "responses"}
         className={[
-          "rounded-sm px-1.5 py-0.5 text-[0.6rem] font-medium leading-none transition-colors",
+          "rounded-[3px] px-1.5 py-0.5 text-[10px] font-medium leading-none transition-colors",
           format === "responses" ? "bg-white text-slate-950 shadow-sm" : inactiveClass,
         ].join(" ")}
         onClick={() => onChange("responses")}
@@ -400,6 +416,7 @@ function SequenceDiagram({
   activeMessageId,
   activeMessageRef,
   messages,
+  loops,
   payloadById,
   onHidePayload,
   onShowPayload,
@@ -408,6 +425,7 @@ function SequenceDiagram({
   activeActorIds: string[];
   activeMessageId?: string;
   activeMessageRef: RefObject<HTMLButtonElement | null>;
+  loops: SequenceLoopSpec[];
   messages: SequenceMessageSpec[];
   payloadById: Map<string, PayloadSpec>;
   onHidePayload: () => void;
@@ -445,6 +463,14 @@ function SequenceDiagram({
               当前步骤还没有传输事件。
             </div>
           ) : null}
+          {loops.map((loop) => (
+            <SequenceLoopMarker
+              key={loop.id}
+              loop={loop}
+              messages={messages}
+              rowHeight={rowHeight}
+            />
+          ))}
           {messages.map((message, index) => {
             const fromIndex = actorIndexById.get(message.from);
             const toIndex = actorIndexById.get(message.to);
@@ -480,6 +506,41 @@ function SequenceDiagram({
           />
         ) : null}
       </div>
+    </div>
+  );
+}
+
+function SequenceLoopMarker({
+  loop,
+  messages,
+  rowHeight,
+}: {
+  loop: SequenceLoopSpec;
+  messages: SequenceMessageSpec[];
+  rowHeight: number;
+}) {
+  const loopIndexes = loop.messageIds
+    .map((messageId) => messages.findIndex((message) => message.id === messageId))
+    .filter((index) => index >= 0);
+
+  if (loopIndexes.length === 0) {
+    return null;
+  }
+
+  const firstIndex = Math.min(...loopIndexes);
+  const lastIndex = Math.max(...loopIndexes);
+  const top = firstIndex * rowHeight + 4;
+  const height = (lastIndex - firstIndex + 1) * rowHeight + 4;
+
+  return (
+    <div
+      aria-label={`循环标记：${loop.label}`}
+      className="pointer-events-none absolute inset-x-2 rounded-lg border-2 border-dashed border-cyan-300 bg-cyan-50/35"
+      style={{ height: `${height}px`, top: `${top}px` }}
+    >
+      <span className="absolute -top-3 left-3 rounded bg-cyan-100 px-2 py-0.5 text-[0.65rem] font-semibold text-cyan-900 shadow-sm">
+        loop: {loop.label}
+      </span>
     </div>
   );
 }
@@ -667,15 +728,16 @@ function PayloadPopover({
   payload?: PayloadSpec;
   popoverRef: RefObject<HTMLElement | null>;
 }) {
-  const [payloadFormat, setPayloadFormat] = useState<PayloadFormat>("chat");
+  const [payloadFormat, setPayloadFormat] = useState<PayloadFormat>(readStoredPayloadFormat);
   const variant = payload ? selectPayloadVariant(payload, payloadFormat) : undefined;
   const showFormatToggle = payload ? hasApiFormatVariants(payload) : false;
   const lockHeight =
     showFormatToggle && Boolean(anchor && anchor.maxHeight < payloadPopoverPreferredHeight);
 
-  useEffect(() => {
-    setPayloadFormat("chat");
-  }, [payload?.id]);
+  function changePayloadFormat(format: PayloadFormat) {
+    setPayloadFormat(format);
+    writeStoredPayloadFormat(format);
+  }
 
   if (!payload || !variant || !anchor) {
     return null;
@@ -712,7 +774,7 @@ function PayloadPopover({
         {showFormatToggle ? (
           <PayloadFormatToggle
             format={payloadFormat}
-            onChange={setPayloadFormat}
+            onChange={changePayloadFormat}
             tone="dark"
           />
         ) : null}
@@ -725,6 +787,11 @@ function PayloadPopover({
       >
         {variant.language === "json" ? (
           <PayloadJsonTree
+            payload={payload}
+            variant={variant}
+          />
+        ) : variant.language === "sse" ? (
+          <PayloadSseTree
             payload={payload}
             variant={variant}
           />
@@ -898,6 +965,28 @@ function selectPayloadVariant(
   );
 
   return preferredVariant ?? payload.variants[0];
+}
+
+function readStoredPayloadFormat(): PayloadFormat {
+  if (typeof window === "undefined") {
+    return "chat";
+  }
+
+  try {
+    const storedFormat = window.localStorage.getItem(payloadFormatStorageKey);
+
+    return storedFormat === "responses" ? "responses" : "chat";
+  } catch {
+    return "chat";
+  }
+}
+
+function writeStoredPayloadFormat(format: PayloadFormat) {
+  try {
+    window.localStorage.setItem(payloadFormatStorageKey, format);
+  } catch {
+    // localStorage can be unavailable in private or restricted contexts.
+  }
 }
 
 function hasApiFormatVariants(payload: PayloadSpec): boolean {

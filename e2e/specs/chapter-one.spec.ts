@@ -241,6 +241,10 @@ test("switches chapter demos from the top navigation select", async ({ page }) =
   await expect(page).toHaveURL(/\/chapters\/01\/demos\/tool-call$/);
   await expect(page.getByLabel("选择演示")).toHaveValue("tool-call");
 
+  await page.getByLabel("选择演示").selectOption("streaming");
+  await expect(page).toHaveURL(/\/chapters\/01\/demos\/streaming$/);
+  await expect(page.getByLabel("选择演示")).toHaveValue("streaming");
+
   await page.getByLabel("选择演示").selectOption("direct");
   await expect(page).toHaveURL(/\/chapters\/01\/demos\/direct$/);
 });
@@ -306,9 +310,9 @@ test("steps through the direct conversation with synchronized chat and sequence 
   await expect(payload).toContainText("返回模型响应");
   await expectNoPayloadFormatHeader(payload);
   await expectJsonTreePayload(payload);
-  await expect(payload).toContainText('"object": "chat.completion"');
-  await expect(payload).toContainText('"choices"');
-  await expectJsonKeyCollapsedUntilOpened(payload, "usage", "prompt_tokens");
+  await expect(payload).toContainText('"object": "response"');
+  await expect(payload).toContainText('"output"');
+  await expect(payload).not.toContainText('"choices"');
   await dismissPayload(page);
 
   await page.getByRole("button", { name: /下一步/ }).click();
@@ -319,6 +323,106 @@ test("steps through the direct conversation with synchronized chat and sequence 
   await expect(payload.getByLabel("传输数据格式切换")).toHaveCount(0);
   await expect(flow.getByLabel("时序图底部参与者")).toHaveCount(0);
   await expect(page.getByRole("button", { name: /下一步/ })).toBeDisabled();
+});
+
+test("streams the direct rewrite answer with synchronized loop markers and partial chat updates", async ({
+  page,
+}) => {
+  await page.goto("/chapters/01/demos/streaming");
+
+  const chat = page.getByLabel("正常对话区域");
+  const flow = page.getByLabel("时序图区域");
+
+  await expect(page.getByLabel("选择演示")).toHaveValue("streaming");
+  await expect(page.getByLabel("演示步进控制")).toContainText("第 1 步 / 共 9 步");
+  await expect(chat).toContainText("我这段话有点绕");
+  await expect(chat).not.toContainText("思考中");
+  await expect(chat).not.toContainText("可以改成：");
+  await expect(flow).toContainText("发送消息");
+  await expect(flow).not.toContainText("请求流式输出");
+  await expect(flow.getByLabel(/循环标记/)).toHaveCount(0);
+
+  let payload = await hoverTransferPayload(page, flow, "发送消息");
+  await expect(payload).toContainText('"conversation_id": "003"');
+  await expect(payload).not.toContainText('"stream"');
+  await expect(payload.getByLabel("传输数据格式切换")).toHaveCount(0);
+  await dismissPayload(page);
+
+  await page.getByRole("button", { name: /下一步/ }).click();
+  await expect(page.getByLabel("演示步进控制")).toContainText("第 2 步 / 共 9 步");
+  await expect(chat).toContainText("思考中……");
+  payload = await hoverTransferPayload(page, flow, "请求流式输出");
+  await expect(payload).toContainText('"stream": true');
+  await expect(payload).toContainText('"messages"');
+  await selectPayloadFormat(payload, "Responses API");
+  await expect(payload).toContainText('"stream": true');
+  await expect(payload).toContainText('"input"');
+  await expect(payload).not.toContainText('"messages"');
+  await dismissPayload(page);
+
+  await page.getByRole("button", { name: /下一步/ }).click();
+  await expect(page.getByLabel("演示步进控制")).toContainText("第 3 步 / 共 9 步");
+  await expect(chat).toContainText("思考中……");
+  await expect(chat).not.toContainText("可以改成：");
+  await expect(flow.getByLabel("循环标记：读取片段并更新气泡")).toBeVisible();
+  payload = await hoverTransferPayload(page, flow, "读取片段 1");
+  await expect(payload).toContainText("SSE event");
+  await expect(payload).toContainText("response.output_text.delta");
+  await expect(payload.getByLabel("SSE data JSON")).toBeVisible();
+  await expect(payload).toContainText('"delta": "可以改成："');
+  await expect(payload).not.toContainText("data: {");
+  await selectPayloadFormat(payload, "Chat Completions");
+  await expect(payload).toContainText('"object": "chat.completion.chunk"');
+  await expect(payload).toContainText('"delta"');
+  await expect(payload).toContainText("可以改成：");
+  await selectPayloadFormat(payload, "Responses API");
+  await expect(payload).toContainText("SSE event");
+  await expect(payload).toContainText("response.output_text.delta");
+  await expect(payload.getByLabel("SSE data JSON")).toBeVisible();
+  await expect(payload).toContainText('"delta": "可以改成："');
+  await expect(payload).not.toContainText("data: {");
+  await dismissPayload(page);
+
+  await page.getByRole("button", { name: /下一步/ }).click();
+  await expect(page.getByLabel("演示步进控制")).toContainText("第 4 步 / 共 9 步");
+  await expect(chat).toContainText("可以改成：");
+  await expect(chat).toContainText("生成中");
+  await expect(chat).not.toContainText("我们明天提前到会议室");
+  payload = await hoverTransferPayload(page, flow, "更新气泡 1");
+  await expect(payload).toContainText('"append_delta": "可以改成："');
+  await dismissPayload(page);
+
+  await page.getByRole("button", { name: /下一步/ }).click();
+  await expect(page.getByLabel("演示步进控制")).toContainText("第 5 步 / 共 9 步");
+  await expect(flow).toContainText("读取片段 2");
+  await expect(flow).not.toContainText("读取片段 3");
+
+  await page.getByRole("button", { name: /下一步/ }).click();
+  await expect(page.getByLabel("演示步进控制")).toContainText("第 6 步 / 共 9 步");
+  await expect(chat).toContainText("我们明天提前到会议室，先调试投影设备，");
+  await expect(chat).toContainText("生成中");
+
+  await page.getByRole("button", { name: /下一步/ }).click();
+  await expect(page.getByLabel("演示步进控制")).toContainText("第 7 步 / 共 9 步");
+  await expect(flow).toContainText("读取片段 3");
+  await expect(flow).not.toContainText("流式完成");
+
+  await page.getByRole("button", { name: /下一步/ }).click();
+  await expect(page.getByLabel("演示步进控制")).toContainText("第 8 步 / 共 9 步");
+  await expect(chat).toContainText("可以改成：我们明天提前到会议室，先调试投影设备，避免会议开始后耽误时间。");
+  await expect(chat).toContainText("生成中");
+
+  await page.getByRole("button", { name: /下一步/ }).click();
+  await expect(page.getByLabel("演示步进控制")).toContainText("第 9 步 / 共 9 步");
+  await expect(chat).toContainText("已回复");
+  await expect(chat).not.toContainText("生成中");
+  payload = await hoverTransferPayload(page, flow, "流式完成");
+  await expect(payload).toContainText("SSE event");
+  await expect(payload).toContainText("response.completed");
+  await expect(payload.getByLabel("SSE data JSON")).toBeVisible();
+  await expect(payload).toContainText('"status": "completed"');
+  await selectPayloadFormat(payload, "Chat Completions");
+  await expect(payload).toContainText('"finish_reason": "stop"');
 });
 
 test("steps through the tool-call demo without revealing future flow events", async ({ page }) => {
@@ -371,10 +475,13 @@ test("steps through the tool-call demo without revealing future flow events", as
   payload = await hoverTransferPayload(page, flow, "返回工具调用");
   await expect(payload).toContainText("返回工具调用");
   await expectNoPayloadFormatHeader(payload);
+  await expect(payload).toContainText('"type": "function_call"');
+  await expect(payload).toContainText('"call_id": "call_weather_shanghai"');
+  await selectPayloadFormat(payload, "Chat Completions");
+  await expectNoPayloadFormatHeader(payload);
   await expect(payload).toContainText('"tool_calls"');
   await expect(payload).toContainText('"arguments"');
   await expect(payload).toContainText("上海");
-
   await selectPayloadFormat(payload, "Responses API");
   await expectNoPayloadFormatHeader(payload);
   await expect(payload).toContainText('"type": "function_call"');
@@ -423,7 +530,8 @@ test("steps through the tool-call demo without revealing future flow events", as
   payload = await hoverTransferPayload(page, flow, "返回最终响应");
   await expect(payload).toContainText("返回最终响应");
   await expectNoPayloadFormatHeader(payload);
-  await expect(payload).toContainText('"object": "chat.completion"');
+  await expect(payload).toContainText('"object": "response"');
+  await expect(payload).toContainText('"output"');
   await expect(chat).not.toContainText("建议带伞。2026-06-24");
   await dismissPayload(page);
 

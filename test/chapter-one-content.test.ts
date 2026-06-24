@@ -3,16 +3,22 @@ import { describe, expect, it } from "vitest";
 import {
   shouldExpandPayloadJsonNode,
 } from "../app/lib/demo-player/payload-tree";
+import { parseSsePayload } from "../app/lib/demo-player/sse";
 import { buildDemoPlayerState, validateDemoSpec } from "../app/lib/demo-player/player";
 import { chapterOneContent, getChapterDemo } from "../app/lib/chapter-one-content";
 
 describe("chapterOneContent", () => {
-  it("defines the chapter homepage and two stable demo routes", () => {
+  it("defines the chapter homepage and three stable demo routes", () => {
     expect(chapterOneContent.homepageRoute).toBe("/chapters/01");
     expect(chapterOneContent.nextChapterRoute).toBe("/chapters/02");
-    expect(chapterOneContent.demos.map((demo) => demo.id)).toEqual(["direct", "tool-call"]);
+    expect(chapterOneContent.demos.map((demo) => demo.id)).toEqual([
+      "direct",
+      "streaming",
+      "tool-call",
+    ]);
     expect(chapterOneContent.demos.map((demo) => demo.route)).toEqual([
       "/chapters/01/demos/direct",
+      "/chapters/01/demos/streaming",
       "/chapters/01/demos/tool-call",
     ]);
   });
@@ -59,6 +65,31 @@ describe("chapterOneContent", () => {
     expect(executeStep.visibleMessages.map((message) => message.id)).toContain("tool-server-weather");
     expect(executeStep.activeMessageId).toBe("tool-server-weather");
     expect(executeStep.activePayload?.id).toBe("tool-execute-input");
+  });
+
+  it("derives streaming loop markers only from visible stream messages", () => {
+    const streamingDemo = getChapterDemo("streaming");
+    const requestStep = buildDemoPlayerState(streamingDemo, 1);
+    const firstChunkStep = buildDemoPlayerState(streamingDemo, 2);
+    const secondUpdateStep = buildDemoPlayerState(streamingDemo, 5);
+
+    expect(requestStep.visibleLoops).toEqual([]);
+    expect(firstChunkStep.visibleLoops).toEqual([
+      {
+        id: "stream-read-update-loop",
+        label: "读取片段并更新气泡",
+        messageIds: ["stream-model-server-chunk-1"],
+      },
+    ]);
+    expect(secondUpdateStep.visibleLoops[0]?.messageIds).toEqual([
+      "stream-model-server-chunk-1",
+      "stream-server-user-partial-1",
+      "stream-model-server-chunk-2",
+      "stream-server-user-partial-2",
+    ]);
+    expect(secondUpdateStep.visibleMessages.map((message) => message.id)).not.toContain(
+      "stream-model-server-chunk-3",
+    );
   });
 
   it("keeps application message intake separate from model API requests", () => {
@@ -129,10 +160,67 @@ describe("chapterOneContent", () => {
     expect(JSON.stringify(responsesVariant?.content)).not.toContain("previous_response_id");
   });
 
+  it("models streaming requests, chunks, and completion events in official API shapes", () => {
+    const streamingDemo = getChapterDemo("streaming");
+    const requestPayload = streamingDemo.payloads.find(
+      (payload) => payload.id === "stream-model-request",
+    );
+    const firstChunkPayload = streamingDemo.payloads.find(
+      (payload) => payload.id === "stream-chunk-1",
+    );
+    const donePayload = streamingDemo.payloads.find((payload) => payload.id === "stream-done");
+    const chatRequest = requestPayload?.variants.find((variant) =>
+      variant.label.includes("Chat Completions"),
+    );
+    const responsesRequest = requestPayload?.variants.find((variant) =>
+      variant.label.includes("Responses API"),
+    );
+    const chatChunk = firstChunkPayload?.variants.find((variant) =>
+      variant.label.includes("Chat Completions"),
+    );
+    const responsesDelta = firstChunkPayload?.variants.find((variant) =>
+      variant.label.includes("Responses API"),
+    );
+    const responsesDone = donePayload?.variants.find((variant) =>
+      variant.label.includes("Responses API"),
+    );
+
+    expect(chatRequest?.content).toMatchObject({
+      model: "gpt-5.5",
+      messages: expect.any(Array),
+      stream: true,
+    });
+    expect(responsesRequest?.content).toMatchObject({
+      input: directQuestionText(),
+      instructions: "You are a helpful assistant.",
+      store: false,
+      stream: true,
+    });
+    expect(chatChunk?.content).toMatchObject({
+      object: "chat.completion.chunk",
+      choices: [
+        {
+          delta: {
+            content: "可以改成：",
+          },
+        },
+      ],
+    });
+    expect(responsesDelta?.language).toBe("sse");
+    expect(responsesDelta?.content).toContain("event: response.output_text.delta");
+    expect(parseSsePayload(String(responsesDelta?.content))[0]?.dataJson).toMatchObject({
+      type: "response.output_text.delta",
+      delta: "可以改成：",
+    });
+    expect(responsesDone?.language).toBe("sse");
+    expect(responsesDone?.content).toContain("event: response.completed");
+  });
+
   it("uses teaching-first JSON tree expansion defaults", () => {
     expect(shouldExpandPayloadJsonNode([], {}, 0)).toBe(true);
     expect(shouldExpandPayloadJsonNode(["messages"], [], 1)).toBe(true);
     expect(shouldExpandPayloadJsonNode(["choices"], [], 1)).toBe(true);
+    expect(shouldExpandPayloadJsonNode(["delta"], {}, 3)).toBe(true);
     expect(shouldExpandPayloadJsonNode(["tool_calls"], [], 2)).toBe(true);
     expect(shouldExpandPayloadJsonNode([0, "tool_calls"], {}, 5)).toBe(true);
     expect(shouldExpandPayloadJsonNode(["usage"], {}, 1)).toBe(false);
@@ -143,6 +231,7 @@ describe("chapterOneContent", () => {
 
   it("keeps get_weather only in the mock tool-call demo", () => {
     expect(JSON.stringify(getChapterDemo("direct"))).not.toContain("get_weather");
+    expect(JSON.stringify(getChapterDemo("streaming"))).not.toContain("get_weather");
     expect(JSON.stringify(getChapterDemo("tool-call"))).toContain("get_weather");
     expect(getChapterDemo("tool-call").steps.map((step) => step.id)).toEqual([
       "tool-step-user",

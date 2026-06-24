@@ -4,6 +4,7 @@ const teachingExpandedKeys = [
   "arguments",
   "choices",
   "content",
+  "delta",
   "function",
   "input",
   "message",

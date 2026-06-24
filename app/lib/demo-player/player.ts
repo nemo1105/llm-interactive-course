@@ -5,6 +5,7 @@ import type {
   DemoValidationIssue,
   PayloadSpec,
   SequenceActorSpec,
+  SequenceLoopSpec,
   SequenceMessageSpec,
 } from "./types";
 
@@ -13,6 +14,7 @@ export type DemoPlayerState = {
   currentStep: DemoStep;
   currentFrame: ConversationFrame;
   visibleActors: SequenceActorSpec[];
+  visibleLoops: SequenceLoopSpec[];
   visibleMessages: SequenceMessageSpec[];
   activeActorIds: string[];
   activeMessageId?: string;
@@ -39,6 +41,12 @@ export function buildDemoPlayerState(spec: DemoSpec, stepIndex: number): DemoPla
   }
 
   const visibleMessages = spec.messages.filter((message) => visibleMessageIds.has(message.id));
+  const visibleLoops = (spec.loops ?? [])
+    .map((loop) => ({
+      ...loop,
+      messageIds: loop.messageIds.filter((messageId) => visibleMessageIds.has(messageId)),
+    }))
+    .filter((loop) => loop.messageIds.length > 0);
   const activeMessage = currentStep?.activeMessageId
     ? spec.messages.find((message) => message.id === currentStep.activeMessageId)
     : undefined;
@@ -52,6 +60,7 @@ export function buildDemoPlayerState(spec: DemoSpec, stepIndex: number): DemoPla
     currentStep,
     currentFrame,
     visibleActors: spec.actors,
+    visibleLoops,
     visibleMessages,
     activeActorIds:
       currentStep?.activeActorIds ?? (activeMessage ? [activeMessage.from, activeMessage.to] : []),
@@ -161,6 +170,24 @@ export function validateDemoSpec(spec: DemoSpec): DemoValidationIssue[] {
         code: "missing-payload",
         detail: `${spec.id}/${message.id} 引用了不存在的 payloadId: ${message.payloadId}`,
       });
+    }
+  }
+
+  for (const loop of spec.loops ?? []) {
+    if (loop.messageIds.length === 0) {
+      issues.push({
+        code: "missing-message",
+        detail: `${spec.id}/${loop.id} 必须至少引用一条时序消息。`,
+      });
+    }
+
+    for (const messageId of loop.messageIds) {
+      if (!messageIds.has(messageId)) {
+        issues.push({
+          code: "missing-message",
+          detail: `${spec.id}/${loop.id} 引用了不存在的 loop messageId: ${messageId}`,
+        });
+      }
     }
   }
 

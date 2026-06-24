@@ -6,7 +6,7 @@ export function meta() {
     { title: `${chapterOneContent.title} | LLM 技术全景课` },
     {
       name: "description",
-      content: "第一章首页：说明普通对话和工具调用两种演示会讲什么。",
+      content: "第一章首页：说明普通对话、流式输出和工具调用三种演示会讲什么。",
     },
   ];
 }

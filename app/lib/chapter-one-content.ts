@@ -1,6 +1,6 @@
 import type { DemoSpec, JsonValue, PayloadSpec } from "./demo-player/types";
 
-export type ChapterDemoId = "direct" | "tool-call";
+export type ChapterDemoId = "direct" | "streaming" | "tool-call";
 
 export type ChapterOneContent = {
   title: string;
@@ -15,6 +15,7 @@ export type ChapterOneContent = {
 const apiModel = "gpt-5.5";
 const systemInstruction = "You are a helpful assistant.";
 const directConversationId = "001";
+const streamingConversationId = "003";
 const toolConversationId = "002";
 
 const directQuestion =
@@ -22,6 +23,12 @@ const directQuestion =
 
 const directAnswer =
   "可以改成：我们明天提前到会议室，先调试投影设备，避免会议开始后耽误时间。";
+
+const streamingAnswerChunk1 = "可以改成：";
+const streamingAnswerChunk2 = "我们明天提前到会议室，先调试投影设备，";
+const streamingAnswerChunk3 = "避免会议开始后耽误时间。";
+const streamingAnswerPartial1 = streamingAnswerChunk1;
+const streamingAnswerPartial2 = `${streamingAnswerChunk1}${streamingAnswerChunk2}`;
 
 const weatherQuestion = "明天下午我要去上海客户现场，出门要带伞吗？";
 
@@ -204,6 +211,52 @@ function responsesTextResponse(id: string, messageId: string, answer: string) {
   };
 }
 
+function chatStreamChunk(id: string, delta: string, finishReason: "stop" | null = null): JsonValue {
+  const deltaPayload: JsonValue = delta ? { content: delta } : {};
+
+  return {
+    id,
+    object: "chat.completion.chunk",
+    created: 1782259200,
+    model: apiModel,
+    choices: [
+      {
+        index: 0,
+        delta: deltaPayload,
+        logprobs: null,
+        finish_reason: finishReason,
+      },
+    ],
+  };
+}
+
+function responsesStreamEvent(type: string, data: JsonValue): string {
+  return `event: ${type}\ndata: ${JSON.stringify(data)}`;
+}
+
+function responsesTextDeltaEvent(delta: string): string {
+  return responsesStreamEvent(
+    "response.output_text.delta",
+    json({
+      type: "response.output_text.delta",
+      item_id: "msg_ch01_streaming",
+      output_index: 0,
+      content_index: 0,
+      delta,
+    }),
+  );
+}
+
+function responsesCompletedEvent(): string {
+  return responsesStreamEvent(
+    "response.completed",
+    json({
+      type: "response.completed",
+      response: responsesTextResponse("resp_ch01_streaming", "msg_ch01_streaming", directAnswer),
+    }),
+  );
+}
+
 const directRequestVariants = [
   {
     id: "direct-chat-completions-request",
@@ -260,6 +313,112 @@ const directResponseVariants = [
     label: "Responses API response",
     language: "json",
     content: json(responsesTextResponse("resp_ch01_direct", "msg_ch01_direct", directAnswer)),
+  },
+] satisfies PayloadSpec["variants"];
+
+const streamingRequestVariants = [
+  {
+    id: "streaming-chat-completions-request",
+    label: "Chat Completions request",
+    language: "json",
+    content: json({
+      model: apiModel,
+      messages: [
+        {
+          role: "system",
+          content: systemInstruction,
+        },
+        {
+          role: "user",
+          content: directQuestion,
+        },
+      ],
+      stream: true,
+    }),
+  },
+  {
+    id: "streaming-responses-request",
+    label: "Responses API request",
+    language: "json",
+    content: json({
+      model: apiModel,
+      instructions: systemInstruction,
+      input: directQuestion,
+      store: false,
+      stream: true,
+    }),
+  },
+] satisfies PayloadSpec["variants"];
+
+const streamingAppMessageVariants = [
+  {
+    id: "streaming-app-message",
+    label: "应用内部 JSON",
+    language: "json",
+    content: json({
+      conversation_id: streamingConversationId,
+      message: directQuestion,
+    }),
+  },
+] satisfies PayloadSpec["variants"];
+
+const streamingChunk1Variants = [
+  {
+    id: "streaming-chat-chunk-1",
+    label: "Chat Completions stream chunk",
+    language: "json",
+    content: json(chatStreamChunk("chatcmpl-ch01-streaming", streamingAnswerChunk1)),
+  },
+  {
+    id: "streaming-responses-delta-1",
+    label: "Responses API stream event",
+    language: "sse",
+    content: responsesTextDeltaEvent(streamingAnswerChunk1),
+  },
+] satisfies PayloadSpec["variants"];
+
+const streamingChunk2Variants = [
+  {
+    id: "streaming-chat-chunk-2",
+    label: "Chat Completions stream chunk",
+    language: "json",
+    content: json(chatStreamChunk("chatcmpl-ch01-streaming", streamingAnswerChunk2)),
+  },
+  {
+    id: "streaming-responses-delta-2",
+    label: "Responses API stream event",
+    language: "sse",
+    content: responsesTextDeltaEvent(streamingAnswerChunk2),
+  },
+] satisfies PayloadSpec["variants"];
+
+const streamingChunk3Variants = [
+  {
+    id: "streaming-chat-chunk-3",
+    label: "Chat Completions stream chunk",
+    language: "json",
+    content: json(chatStreamChunk("chatcmpl-ch01-streaming", streamingAnswerChunk3)),
+  },
+  {
+    id: "streaming-responses-delta-3",
+    label: "Responses API stream event",
+    language: "sse",
+    content: responsesTextDeltaEvent(streamingAnswerChunk3),
+  },
+] satisfies PayloadSpec["variants"];
+
+const streamingDoneVariants = [
+  {
+    id: "streaming-chat-done",
+    label: "Chat Completions stream chunk",
+    language: "json",
+    content: json(chatStreamChunk("chatcmpl-ch01-streaming", "", "stop")),
+  },
+  {
+    id: "streaming-responses-completed",
+    label: "Responses API stream event",
+    language: "sse",
+    content: responsesCompletedEvent(),
   },
 ] satisfies PayloadSpec["variants"];
 
@@ -472,7 +631,7 @@ const directDemo = {
   title: "普通对话演示",
   shortTitle: "普通对话",
   route: "/chapters/01/demos/direct",
-  nextRoute: "/chapters/01/demos/tool-call",
+  nextRoute: "/chapters/01/demos/streaming",
   summary: "用户让助手改写一句话，应用服务器把消息组装成模型请求，模型直接返回文本。",
   outcome: "没有工具调用，完整路径是：用户、应用服务器、大模型，再回到用户。",
   conversationTitle: "聊天窗口",
@@ -622,6 +781,362 @@ const directDemo = {
       activeActorIds: ["direct-server", "direct-user"],
       activeMessageId: "direct-server-user",
       payloadId: "direct-ui-update",
+    },
+  ],
+} satisfies DemoSpec;
+
+const streamingDemo = {
+  id: "streaming",
+  title: "流式输出演示",
+  shortTitle: "流式输出",
+  route: "/chapters/01/demos/streaming",
+  nextRoute: "/chapters/01/demos/tool-call",
+  summary: "同一个改写请求开启流式返回后，应用服务器边读取模型片段边更新助手气泡。",
+  outcome: "模型仍然生成同一段回答；变化在于应用用循环读取片段，并把部分文本持续写回界面。",
+  conversationTitle: "聊天窗口",
+  conversationSubtitle: "左侧助手气泡会按步骤累积文本。",
+  flowTitle: "流式输出时序图",
+  flowSubtitle: "循环标记表示应用反复读取流式片段并更新界面。",
+  actors: [
+    {
+      id: "stream-user",
+      label: "用户",
+      kind: "user",
+    },
+    {
+      id: "stream-server",
+      label: "应用服务器",
+      kind: "server",
+    },
+    {
+      id: "stream-model",
+      label: "大模型",
+      kind: "model",
+    },
+  ],
+  messages: [
+    {
+      id: "stream-user-server",
+      from: "stream-user",
+      to: "stream-server",
+      label: "发送消息",
+      kind: "api-request",
+      description: "用户消息先进入应用服务器，仍然先形成应用内部消息。",
+      payloadId: "stream-send-message",
+    },
+    {
+      id: "stream-server-model",
+      from: "stream-server",
+      to: "stream-model",
+      label: "请求流式输出",
+      kind: "api-request",
+      description: "应用服务器请求大模型，并打开 stream。",
+      payloadId: "stream-model-request",
+    },
+    {
+      id: "stream-model-server-chunk-1",
+      from: "stream-model",
+      to: "stream-server",
+      label: "读取片段 1",
+      kind: "stream",
+      description: "模型先返回第一个文本增量片段。",
+      payloadId: "stream-chunk-1",
+    },
+    {
+      id: "stream-server-user-partial-1",
+      from: "stream-server",
+      to: "stream-user",
+      label: "更新气泡 1",
+      kind: "ui",
+      description: "应用把第一个片段写入同一个助手气泡。",
+      payloadId: "stream-ui-partial-1",
+    },
+    {
+      id: "stream-model-server-chunk-2",
+      from: "stream-model",
+      to: "stream-server",
+      label: "读取片段 2",
+      kind: "stream",
+      description: "模型继续返回下一段文本增量。",
+      payloadId: "stream-chunk-2",
+    },
+    {
+      id: "stream-server-user-partial-2",
+      from: "stream-server",
+      to: "stream-user",
+      label: "更新气泡 2",
+      kind: "ui",
+      description: "应用把第二个片段追加到助手气泡。",
+      payloadId: "stream-ui-partial-2",
+    },
+    {
+      id: "stream-model-server-chunk-3",
+      from: "stream-model",
+      to: "stream-server",
+      label: "读取片段 3",
+      kind: "stream",
+      description: "模型返回最后一段可见文本。",
+      payloadId: "stream-chunk-3",
+    },
+    {
+      id: "stream-server-user-partial-3",
+      from: "stream-server",
+      to: "stream-user",
+      label: "更新气泡 3",
+      kind: "ui",
+      description: "应用把最后一段追加到同一个助手气泡。",
+      payloadId: "stream-ui-partial-3",
+    },
+    {
+      id: "stream-model-server-done",
+      from: "stream-model",
+      to: "stream-server",
+      label: "流式完成",
+      kind: "stream",
+      description: "模型发送完成事件，应用把助手消息标记为已回复。",
+      payloadId: "stream-done",
+    },
+  ],
+  loops: [
+    {
+      id: "stream-read-update-loop",
+      label: "读取片段并更新气泡",
+      messageIds: [
+        "stream-model-server-chunk-1",
+        "stream-server-user-partial-1",
+        "stream-model-server-chunk-2",
+        "stream-server-user-partial-2",
+        "stream-model-server-chunk-3",
+        "stream-server-user-partial-3",
+      ],
+    },
+  ],
+  frames: [
+    {
+      id: "stream-frame-user",
+      subtitle: "用户发送同一个真实改写请求。",
+      messages: [{ id: "stream-user-message", role: "用户", text: directQuestion, state: "已发送" }],
+    },
+    {
+      id: "stream-frame-waiting",
+      subtitle: "应用服务器已经打开流式返回，助手气泡还在等待第一个片段。",
+      messages: [
+        { id: "stream-user-message", role: "用户", text: directQuestion, state: "已发送" },
+        { id: "stream-assistant-answer", role: "助手", text: "思考中……", state: "思考中" },
+      ],
+    },
+    {
+      id: "stream-frame-partial-1",
+      subtitle: "第一个片段到达后，助手气泡立即出现部分文本。",
+      messages: [
+        { id: "stream-user-message", role: "用户", text: directQuestion, state: "已发送" },
+        {
+          id: "stream-assistant-answer",
+          role: "助手",
+          text: streamingAnswerPartial1,
+          state: "生成中",
+          streaming: true,
+        },
+      ],
+    },
+    {
+      id: "stream-frame-partial-2",
+      subtitle: "第二个片段追加到同一个助手气泡。",
+      messages: [
+        { id: "stream-user-message", role: "用户", text: directQuestion, state: "已发送" },
+        {
+          id: "stream-assistant-answer",
+          role: "助手",
+          text: streamingAnswerPartial2,
+          state: "生成中",
+          streaming: true,
+        },
+      ],
+    },
+    {
+      id: "stream-frame-partial-3",
+      subtitle: "可见文本已经完整，但流式连接还需要完成事件收尾。",
+      messages: [
+        { id: "stream-user-message", role: "用户", text: directQuestion, state: "已发送" },
+        {
+          id: "stream-assistant-answer",
+          role: "助手",
+          text: directAnswer,
+          state: "生成中",
+          streaming: true,
+        },
+      ],
+    },
+    {
+      id: "stream-frame-answer",
+      subtitle: "完成事件到达后，应用把助手消息标记为已回复。",
+      messages: [
+        { id: "stream-user-message", role: "用户", text: directQuestion, state: "已发送" },
+        { id: "stream-assistant-answer", role: "助手", text: directAnswer, state: "已回复" },
+      ],
+    },
+  ],
+  payloads: [
+    payload("stream-send-message", "发送消息：应用接收用户消息", streamingAppMessageVariants),
+    payload("stream-model-request", "请求流式输出", streamingRequestVariants),
+    payload("stream-chunk-1", "读取片段 1：模型流式返回", streamingChunk1Variants),
+    payload("stream-ui-partial-1", "更新气泡 1：应用写入部分文本", [
+      {
+        id: "stream-ui-partial-1-json",
+        label: "应用内部 JSON",
+        language: "json",
+        content: json({
+          conversation_id: streamingConversationId,
+          update_message: {
+            id: "002",
+            role: "assistant",
+            append_delta: streamingAnswerChunk1,
+            content_so_far: streamingAnswerPartial1,
+            state: "streaming",
+          },
+          visible_to_user: true,
+        }),
+      },
+    ]),
+    payload("stream-chunk-2", "读取片段 2：模型流式返回", streamingChunk2Variants),
+    payload("stream-ui-partial-2", "更新气泡 2：应用追加部分文本", [
+      {
+        id: "stream-ui-partial-2-json",
+        label: "应用内部 JSON",
+        language: "json",
+        content: json({
+          conversation_id: streamingConversationId,
+          update_message: {
+            id: "002",
+            role: "assistant",
+            append_delta: streamingAnswerChunk2,
+            content_so_far: streamingAnswerPartial2,
+            state: "streaming",
+          },
+          visible_to_user: true,
+        }),
+      },
+    ]),
+    payload("stream-chunk-3", "读取片段 3：模型流式返回", streamingChunk3Variants),
+    payload("stream-ui-partial-3", "更新气泡 3：应用追加部分文本", [
+      {
+        id: "stream-ui-partial-3-json",
+        label: "应用内部 JSON",
+        language: "json",
+        content: json({
+          conversation_id: streamingConversationId,
+          update_message: {
+            id: "002",
+            role: "assistant",
+            append_delta: streamingAnswerChunk3,
+            content_so_far: directAnswer,
+            state: "streaming",
+          },
+          visible_to_user: true,
+        }),
+      },
+    ]),
+    payload("stream-done", "流式完成：应用结束生成状态", streamingDoneVariants),
+  ],
+  steps: [
+    {
+      id: "stream-step-user",
+      title: "用户发送消息",
+      description: "左侧出现用户消息；右侧显示用户消息进入应用服务器。",
+      leftFrameId: "stream-frame-user",
+      focusMessageId: "stream-user-message",
+      revealMessageIds: ["stream-user-server"],
+      activeActorIds: ["stream-user", "stream-server"],
+      activeMessageId: "stream-user-server",
+      payloadId: "stream-send-message",
+    },
+    {
+      id: "stream-step-request",
+      title: "应用服务器请求流式输出",
+      description: "左侧进入思考中；右侧新增带 stream 的模型请求。",
+      leftFrameId: "stream-frame-waiting",
+      focusMessageId: "stream-assistant-answer",
+      revealMessageIds: ["stream-server-model"],
+      activeActorIds: ["stream-server", "stream-model"],
+      activeMessageId: "stream-server-model",
+      payloadId: "stream-model-request",
+    },
+    {
+      id: "stream-step-read-1",
+      title: "读取第一个片段",
+      description: "右侧进入循环：应用服务器从模型流里读到第一个文本片段。",
+      leftFrameId: "stream-frame-waiting",
+      focusMessageId: "stream-assistant-answer",
+      revealMessageIds: ["stream-model-server-chunk-1"],
+      activeActorIds: ["stream-model", "stream-server"],
+      activeMessageId: "stream-model-server-chunk-1",
+      payloadId: "stream-chunk-1",
+    },
+    {
+      id: "stream-step-update-1",
+      title: "更新助手气泡",
+      description: "左侧助手气泡出现第一段文本；右侧显示应用把片段写回界面。",
+      leftFrameId: "stream-frame-partial-1",
+      focusMessageId: "stream-assistant-answer",
+      revealMessageIds: ["stream-server-user-partial-1"],
+      activeActorIds: ["stream-server", "stream-user"],
+      activeMessageId: "stream-server-user-partial-1",
+      payloadId: "stream-ui-partial-1",
+    },
+    {
+      id: "stream-step-read-2",
+      title: "读取第二个片段",
+      description: "应用服务器继续从同一个流里读取第二个文本片段。",
+      leftFrameId: "stream-frame-partial-1",
+      focusMessageId: "stream-assistant-answer",
+      revealMessageIds: ["stream-model-server-chunk-2"],
+      activeActorIds: ["stream-model", "stream-server"],
+      activeMessageId: "stream-model-server-chunk-2",
+      payloadId: "stream-chunk-2",
+    },
+    {
+      id: "stream-step-update-2",
+      title: "继续追加到气泡",
+      description: "左侧同一个助手气泡变长；右侧显示第二次界面更新。",
+      leftFrameId: "stream-frame-partial-2",
+      focusMessageId: "stream-assistant-answer",
+      revealMessageIds: ["stream-server-user-partial-2"],
+      activeActorIds: ["stream-server", "stream-user"],
+      activeMessageId: "stream-server-user-partial-2",
+      payloadId: "stream-ui-partial-2",
+    },
+    {
+      id: "stream-step-read-3",
+      title: "读取最后一个文本片段",
+      description: "模型继续返回最后一段可见文本。",
+      leftFrameId: "stream-frame-partial-2",
+      focusMessageId: "stream-assistant-answer",
+      revealMessageIds: ["stream-model-server-chunk-3"],
+      activeActorIds: ["stream-model", "stream-server"],
+      activeMessageId: "stream-model-server-chunk-3",
+      payloadId: "stream-chunk-3",
+    },
+    {
+      id: "stream-step-update-3",
+      title: "写入完整可见文本",
+      description: "左侧已经看到完整回答，但状态仍然是生成中。",
+      leftFrameId: "stream-frame-partial-3",
+      focusMessageId: "stream-assistant-answer",
+      revealMessageIds: ["stream-server-user-partial-3"],
+      activeActorIds: ["stream-server", "stream-user"],
+      activeMessageId: "stream-server-user-partial-3",
+      payloadId: "stream-ui-partial-3",
+    },
+    {
+      id: "stream-step-done",
+      title: "流式输出完成",
+      description: "完成事件到达，应用把助手气泡从生成中切换为已回复。",
+      leftFrameId: "stream-frame-answer",
+      focusMessageId: "stream-assistant-answer",
+      revealMessageIds: ["stream-model-server-done"],
+      activeActorIds: ["stream-model", "stream-server"],
+      activeMessageId: "stream-model-server-done",
+      payloadId: "stream-done",
     },
   ],
 } satisfies DemoSpec;
@@ -900,16 +1415,17 @@ export const chapterOneContent = {
   title: "第一章：最小的一次 LLM 对话",
   eyebrow: "从真实聊天看见一次推理调用",
   intro:
-    "这一章只讲一件事：用户发出一句话后，聊天界面、应用服务器、大模型和工具之间到底传了什么。先看普通文本回答，再看一次需要 get_weather 的上海出行问题。",
+    "这一章只讲一件事：用户发出一句话后，聊天界面、应用服务器、大模型和工具之间到底传了什么。先看普通文本回答，再看同一个回答如何流式出现，最后看一次需要 get_weather 的上海出行问题。",
   whatYouLearn: [
     "用户看到的是聊天气泡，开发者要处理的是结构化请求和响应。",
     "普通对话路径很短：用户消息进入应用服务器，应用服务器请求大模型，大模型返回文本。",
+    "流式输出不会改变问题和最终回答，它改变的是应用读取模型输出并更新界面的节奏。",
     "工具调用路径更长：大模型先请求 get_weather，应用服务器执行课堂 mock 工具，再把结果写回模型。",
     "所有演示都必须一步一步展开，左侧聊天状态和右侧时序图由同一个步骤控制。",
   ],
   homepageRoute: "/chapters/01",
   nextChapterRoute: "/chapters/02",
-  demos: [directDemo, toolCallDemo],
+  demos: [directDemo, streamingDemo, toolCallDemo],
 } satisfies ChapterOneContent;
 
 export function getChapterDemo(demoId: ChapterDemoId): DemoSpec {

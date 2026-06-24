@@ -1,7 +1,7 @@
 ---
 status: accepted
 owner: human
-last_reviewed: 2026-06-23
+last_reviewed: 2026-06-24
 upstream_docs:
   - eval-plan.md
 next_action: 后续加入具体示例前先更新本文件并重新确认。
@@ -13,9 +13,11 @@ next_action: 后续加入具体示例前先更新本文件并重新确认。
 
 - 章节首页：`/chapters/01` 展示第一章名称、本章要讲什么、进入演示和下一章导航。
 - 直接路径：`/chapters/01/demos/direct` 逐步展示改写对话，并按步展示用户到应用、应用到模型、模型到应用、应用到用户的传输事件。
+- 流式路径：`/chapters/01/demos/streaming` 复用改写对话，左侧助手气泡随 step 累积文本，右侧循环标记包住流式读取和处理片段。
+- 流式路径 payload：模型请求在 Chat Completions 与 Responses API 中都包含 `stream: true`；流式片段分别展示 Chat Completions 的 `chat.completion.chunk` 和 Responses API 的 `response.output_text.delta` 事件，Responses API SSE 的 `data` JSON 以树形方式展示。
 - 工具路径：`/chapters/01/demos/tool-call` 逐步展示上海出行问答，并按步展示 `get_weather` 请求、mock 工具返回、工具结果回写和“建议带伞”的最终回答。
 - 工具路径思考中：左侧保持通用“思考中”状态，不提前解析用户问题；右侧继续推进模型请求工具、应用执行工具、工具返回和结果回写。
-- 第一跳 payload：普通对话和工具调用的首条 `发送消息` 展示应用接收用户消息的最小内部记录，只表达会话归属和原始消息内容，不出现 Chat Completions 或 Responses API 格式切换。
+- 第一跳 payload：普通对话、流式输出和工具调用的首条 `发送消息` 展示应用接收用户消息的最小内部记录，只表达会话归属和原始消息内容，不出现 Chat Completions 或 Responses API 格式切换。
 - 无状态 Responses 回写：工具结果回写的 Responses API payload 显式带回完成最终回答所需的用户输入、模型工具调用和工具结果上下文，不依赖平台托管的上一轮响应指针。
 - 左右同步：右侧当前事件对应左侧明确消息块，左侧聊天面板固定在视口内；聊天内容未溢出时从顶部自然排列，溢出时当前消息高亮并靠近聊天消息区域底部。
 - 工具路径长时序：连续点击下一步时，顶部工具栏位置稳定，下一步按钮不跳动，页面不发生文档级滚动。
@@ -29,6 +31,8 @@ next_action: 后续加入具体示例前先更新本文件并重新确认。
 - 页面暗示模型自己执行工具。
 - 演示页只有聊天，没有时序图或 payload。
 - 演示页一次性展示所有时序消息线，无法逐步推进。
+- 流式输出示例只在最后一次性显示完整助手回复，没有逐步更新同一个助手气泡。
+- 流式输出右侧没有循环标记，或循环标记提前包住尚未出现的未来片段。
 - 首条 `发送消息` 直接展示 Chat Completions 或 Responses API 请求，跳过应用先接收用户消息和创建应用内部会话记录的事实。
 - 工具结果回写的 Responses API payload 依赖平台托管状态，或没有显式带回完成最终回答所需的上下文。
 - 左侧聊天状态和右侧时序图进度不同步。
@@ -38,6 +42,7 @@ next_action: 后续加入具体示例前先更新本文件并重新确认。
 - 长时序到达后段时，时序图底部没有参与者行，导致消息末端对象归属不清楚。
 - payload 浮层固定只在上方或下方展示，明明左右有空白却压缩内容、遮挡消息线或顶部工具栏。
 - payload 浮层正文显示 `Chat Completions request`、`Responses API response`、`json` 等冗余格式标题或语言标签。
+- Responses API 流式 payload 只显示原始 SSE 字符串，学习者需要在整段文本里手动找 `data` JSON。
 - payload 退回整块预格式化 JSON 字符串，无法折叠 `usage`、token 明细、`metadata` 等辅助字段。
 - 首页直接渲染第一章内容，破坏占位 gate。
 
@@ -46,3 +51,4 @@ next_action: 后续加入具体示例前先更新本文件并重新确认。
 - `/chapters/02` 是中性预留页，不写入第二章未确认课程内容。
 - 第一章事件 payload 支持键盘路径查看，不只依赖鼠标。
 - 第一步不能看到后续模型响应、工具返回或最终界面更新。
+- 流式输出未完成前可以看到部分助手文本，但不能提前看到最终完成状态或后续未读取片段的 payload。

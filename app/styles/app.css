@@ -35,7 +35,7 @@ html {
 }
 
 button {
-  font: inherit;
+  font-family: inherit;
 }
 
 .home-fullpage-section {

@@ -45,16 +45,36 @@ export function PayloadJsonTree({
   );
 
   return (
+    <PayloadJsonValueTree
+      data={variant.content}
+      expansion={expansion}
+      treeKey={variant.id}
+    />
+  );
+}
+
+export function PayloadJsonValueTree({
+  ariaLabel = "JSON 树传输数据",
+  data,
+  expansion,
+  treeKey,
+}: {
+  ariaLabel?: string;
+  data: JsonPayloadVariantSpec["content"];
+  expansion: Required<PayloadExpansionSpec>;
+  treeKey: string;
+}) {
+  return (
     <div
-      aria-label="JSON 树传输数据"
+      aria-label={ariaLabel}
       className="payload-json-tree min-h-0 flex-1 overflow-auto p-3"
     >
       <JSONTree
         collectionLimit={80}
-        data={variant.content}
+        data={data}
         hideRoot
         invertTheme={false}
-        key={variant.id}
+        key={treeKey}
         labelRenderer={payloadLabelRenderer}
         shouldExpandNodeInitially={(keyPath, data, level) =>
           shouldExpandPayloadJsonNode(keyPath, data, level, expansion)

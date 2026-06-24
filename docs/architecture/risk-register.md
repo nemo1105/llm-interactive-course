@@ -1,7 +1,7 @@
 ---
 status: accepted
 owner: human
-last_reviewed: 2026-06-23
+last_reviewed: 2026-06-24
 upstream_docs:
   - system-design.md
 next_action: 用单元测试和 Playwright 覆盖已列风险。
@@ -13,10 +13,11 @@ next_action: 用单元测试和 Playwright 覆盖已列风险。
 
 - 第一章页面仍然停留在占位表达：通过内容数据单元测试阻止第一章禁用占位表达。
 - 首页占位语义被破坏：通过现有首页 Playwright 测试回归。
-- 固定路由缺失或导航错位：通过 Playwright 覆盖章节首页、两个演示页和 `/chapters/02`。
+- 固定路由缺失或导航错位：通过 Playwright 覆盖章节首页、三个演示页和 `/chapters/02`。
 - 第一章演示结构退化成文字堆叠：通过 Playwright 覆盖“正常对话区域”和“时序图区域”同时存在。
 - `DemoSpec` 引用断裂：通过 Vitest 校验 step、frame、actor、message、payload 引用完整性。
 - 左右状态不同步或右侧一次全出现：通过 Playwright 覆盖步进前后时序消息和聊天状态变化。
+- 流式输出退化成一次性完整回答：通过 Vitest 和 Playwright 覆盖流式片段、助手气泡累积和循环标记。
 - 时序图渲染错误：通过 Playwright 断言参与者、消息线和消息 hover payload 浮层可见。
 - 第一章事件只展示标题不展示实际数据：通过 Playwright 断言消息 hover 后的 payload 内容。
 - 交互只展示效果不展示机制：通过页面断言同时覆盖聊天面板、第一章传输事件和完整请求响应 payload。

@@ -1,22 +1,24 @@
 ---
 status: accepted
 owner: human
-last_reviewed: 2026-06-23
+last_reviewed: 2026-06-24
 upstream_docs:
   - acceptance-criteria.md
-next_action: 为内容数据和章节路由增加自动化测试。
+next_action: 为内容数据、流式循环标记和章节路由增加自动化测试。
 ---
 
 # 第一章页面测试策略
 
 ## 单元测试
 
-- 验证普通对话和工具调用两个演示都存在，并拥有稳定路由。
+- 验证普通对话、流式输出和工具调用三个演示都存在，并拥有稳定路由。
 - 验证每个演示都有聊天帧、时序参与者、时序消息、payload 和 step 序列。
 - 验证每个 step 引用的聊天帧、左侧聚焦消息、时序消息和 payload 都存在。
 - 验证播放器状态派生只展示当前步之前已经 reveal 的时序消息。
+- 验证流式输出演示的循环标记只引用存在的时序消息，且不会让未来流式片段提前出现。
 - 验证 JSON payload 使用结构化值，且 JSON 树默认展开教学主干字段、折叠 `usage`、token 明细、`metadata`、`annotations` 等辅助字段。
 - 验证普通对话首条 `发送消息` payload 是最小应用内部记录，只表达应用会话标识和原始用户消息内容；模型 API 结构只在后续模型传输 payload 中出现。
+- 验证流式输出请求 payload 在 Chat Completions 和 Responses API 两种格式中都包含 `stream: true`，流式片段 payload 分别包含 `chat.completion.chunk` 与 `response.output_text.delta`，并验证 Responses API SSE `data` 可解析为 JSON。
 - 验证工具调用回写工具结果时，Responses API 请求采用无状态上下文重放方式，保留必要的用户输入、模型工具调用和工具结果上下文，且不依赖平台托管的上一轮响应指针。
 - 验证工具调用演示包含 `get_weather` 且普通对话演示不包含工具调用。
 - 验证内容数据包含具体上海天气示例，并且不包含第一章禁用占位表达。
@@ -25,8 +27,12 @@ next_action: 为内容数据和章节路由增加自动化测试。
 
 - 访问 `/chapters/01`，确认标题、本章介绍、进入演示和下一章导航可见。
 - 访问 `/chapters/01/demos/direct`，确认普通对话区域、标准时序图和步进控制可见。
+- 访问 `/chapters/01/demos/streaming`，确认流式输出区域、标准时序图、循环标记和步进控制可见。
 - 在普通对话演示中逐步点击下一步，确认左侧聊天和右侧图同步推进。
 - 在普通对话演示初始状态，确认模型响应和界面更新不提前出现。
+- 在流式输出演示中逐步点击下一步，确认助手气泡按片段累积文本，生成中状态持续到完成步骤，最终状态为已回复。
+- 在流式输出演示中确认右侧循环标记包住流式读取和界面更新步骤，且未来流式片段、未来 payload 不提前出现。
+- 在流式输出演示中悬浮模型请求和流式片段，确认 payload 能切换 Chat Completions 与 Responses API，且两种格式分别展示 `stream: true`、`delta` chunk、typed SSE event 和结构化 SSE data JSON。
 - 在普通对话和工具调用演示初始状态，悬浮第一条 `发送消息`，确认 payload 是应用接收用户消息的最小内部记录，只表达会话归属和原始消息内容，不显示 Chat Completions 或 Responses API 切换入口。
 - 访问 `/chapters/01/demos/tool-call`，确认 `get_weather`、上海天气数据、工具结果回写和最终建议可见。
 - 在工具调用演示中逐步点击下一步，确认左侧“思考中”期间右侧能连续推进工具调用、工具返回和回写步骤。
@@ -37,6 +43,7 @@ next_action: 为内容数据和章节路由增加自动化测试。
 - 在工具调用演示中悬浮或聚焦已出现的消息标签，确认工具参数、工具返回和二次模型请求 payload 可见。
 - 在 payload 浮层中确认 JSON payload 以可折叠树展示，主干字段默认可见，折叠字段展开后能查看内部数据。
 - 在普通对话和工具调用演示的模型 API 传输中从 payload 浮层右上角切换 Chat Completions 与 Responses API，确认同一时刻只显示当前浮层选中的一种 payload 格式；在工具结果回写的 Responses API payload 中确认其采用无状态上下文重放方式。
+- 在同一浏览器上下文中切换 payload 官方 API 协议后，继续打开后续带两种官方 API variants 的 payload，确认默认协议沿用上次选择。
 - 在 payload 浮层中确认不会展示 `Chat Completions request`、`Responses API response`、`json` 这类冗余格式标题或语言标签。
 - 在较低视口高度下悬浮后段时序消息，确认 payload 浮层仍在视口内且内容可滚动查看。
 - 在宽视口下分别悬浮靠左和靠右的时序消息，确认 payload 浮层能出现在消息右侧或左侧并保持在视口内。

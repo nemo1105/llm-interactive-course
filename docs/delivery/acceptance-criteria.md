@@ -1,7 +1,7 @@
 ---
 status: accepted
 owner: human
-last_reviewed: 2026-06-23
+last_reviewed: 2026-06-24
 upstream_docs:
   - execution-plan.md
 next_action: 用自动化测试验证每条验收标准。
@@ -13,11 +13,15 @@ next_action: 用自动化测试验证每条验收标准。
 
 - `/chapters/01` 能渲染第一章标题、本章要讲什么、进入演示和下一章导航。
 - `/chapters/01/demos/direct` 能渲染普通对话演示和本章时序事件。
+- `/chapters/01/demos/streaming` 能渲染流式输出演示和本章时序事件。
 - `/chapters/01/demos/tool-call` 能渲染工具调用演示和本章时序事件。
 - `/chapters/02` 能渲染第二章中性预留页，且不写入未确认课程内容。
 - 直接文本响应演示展示用户输入、应用构造请求、模型文本输出和应用展示文本四个传输事件。
+- 流式输出演示复用普通对话改写示例，展示用户输入、流式模型请求、多个流式片段、逐步界面更新和最终完成状态。
+- 流式输出演示左侧助手气泡必须按 step 累积文本，生成中状态和最终已回复状态可区分。
+- 流式输出演示右侧必须用循环标记包住流式读取及处理步骤；循环标记不得提前显示未来片段。
 - mock 工具调用演示展示 `get_weather`、工具调用请求、mock 工具执行、工具结果回写和最终展示阶段。
-- 两个演示都提供上一步、下一步、重播、当前步数和当前步骤说明。
+- 三个演示都提供上一步、下一步、重播、当前步数和当前步骤说明。
 - 演示页顶部工具栏同时承载导航和步进操作；连续点击下一步时，下一步按钮位置稳定，不因新增时序内容而跳动。
 - 初始状态只展示第一步对应的聊天帧和第一条时序消息；payload 只在消息标签 hover 或 focus 时出现。
 - 点击下一步后，左侧聊天帧和右侧时序消息线由同一个 step 同步更新。
@@ -38,6 +42,8 @@ next_action: 用自动化测试验证每条验收标准。
 - 页面包含具体城市、日期、温度区间、降水概率和真实感最终回答样例。
 - payload 包含应用内部消息、完整模型请求、模型响应、工具调用参数、工具返回结果和界面状态更新；首条用户到应用的 `发送消息` payload 必须只表达应用会话标识和原始用户消息内容，且不展示模型 API 格式切换。
 - 模型 API 传输需要区分 Chat Completions 和 Responses API 两种官方格式，且同一时刻只展示当前 payload 浮层右上角选中的一种；Responses API 工具结果回写请求必须采用无状态上下文重放方式，不依赖平台托管的上一轮响应指针。
+- 浏览器必须记住 payload 浮层中当前选择的官方 API 协议；切换协议后，后续带两种官方 API variants 的 payload 默认使用同一协议。
+- 流式输出演示的模型请求 payload 在两种官方格式中都包含 `stream: true`；流式片段 payload 能展示 Chat Completions 的 `delta` chunk 和 Responses API 的 typed SSE event，且 Responses API 的 SSE `data` JSON 必须以可折叠树展示。
 - payload 浮层只展示当前传输标题、弱化后的格式切换入口和实际数据；不得展示 `Chat Completions request`、`Responses API response`、`json` 这类冗余格式标题或语言标签。
 - `DemoSpec` 中 JSON payload 使用结构化 JSON 值，不使用预格式化 JSON 字符串作为主要数据形态。
 - 第一章内容数据使用 `DemoSpec`，并包含聊天帧、左侧聚焦消息、时序参与者、时序消息、payload 和 step 序列。
@@ -50,6 +56,6 @@ next_action: 用自动化测试验证每条验收标准。
 
 ## 验证方式
 
-- Vitest 覆盖 `DemoSpec` 引用完整性、步进派生状态、结构化 JSON payload 和 JSON 树默认展开策略。
-- Playwright 覆盖章节首页、两个演示页、下一章占位页、步进同步、顶部工具栏稳定、右侧内部滚动、未来消息隐藏、payload hover/focus 查看、JSON 树展开折叠、API 格式切换和首页占位回归。
+- Vitest 覆盖 `DemoSpec` 引用完整性、步进派生状态、流式循环引用、结构化 JSON payload 和 JSON 树默认展开策略。
+- Playwright 覆盖章节首页、三个演示页、下一章占位页、步进同步、流式气泡累积、循环标记、SSE data JSON 展示、顶部工具栏稳定、右侧内部滚动、未来消息隐藏、payload hover/focus 查看、JSON 树展开折叠、API 格式切换和首页占位回归。
 - `pnpm run verify:iteration` 作为最终验收命令。
