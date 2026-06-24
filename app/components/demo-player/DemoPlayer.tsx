@@ -31,6 +31,14 @@ const actorTone: Record<SequenceActorKind, string> = {
   agent: "border-indigo-300 bg-indigo-50 text-indigo-950",
   gate: "border-rose-300 bg-rose-50 text-rose-950",
   metric: "border-slate-300 bg-slate-50 text-slate-950",
+  memory: "border-teal-300 bg-teal-50 text-teal-950",
+  skill: "border-fuchsia-300 bg-fuchsia-50 text-fuchsia-950",
+  environment: "border-lime-300 bg-lime-50 text-lime-950",
+  channel: "border-blue-300 bg-blue-50 text-blue-950",
+  connector: "border-purple-300 bg-purple-50 text-purple-950",
+  scheduler: "border-stone-300 bg-stone-50 text-stone-950",
+  file: "border-orange-300 bg-orange-50 text-orange-950",
+  human: "border-pink-300 bg-pink-50 text-pink-950",
 };
 
 const messageTone: Record<
@@ -83,6 +91,24 @@ const messageTone: Record<
     activeLeftArrow: "border-r-slate-700",
     activeRightArrow: "border-l-slate-700",
     activeLabel: "border-slate-500 bg-slate-100 text-slate-950",
+  },
+  approval: {
+    activeLine: "border-rose-600",
+    activeLeftArrow: "border-r-rose-600",
+    activeRightArrow: "border-l-rose-600",
+    activeLabel: "border-rose-500 bg-rose-50 text-rose-950",
+  },
+  "channel-message": {
+    activeLine: "border-blue-600",
+    activeLeftArrow: "border-r-blue-600",
+    activeRightArrow: "border-l-blue-600",
+    activeLabel: "border-blue-500 bg-blue-50 text-blue-950",
+  },
+  "connector-auth": {
+    activeLine: "border-purple-600",
+    activeLeftArrow: "border-r-purple-600",
+    activeRightArrow: "border-l-purple-600",
+    activeLabel: "border-purple-500 bg-purple-50 text-purple-950",
   },
 };
 

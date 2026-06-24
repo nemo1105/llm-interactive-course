@@ -661,11 +661,13 @@ test("scrolls newly revealed sequence messages into view while stepping", async 
   }
 });
 
-test("reserves the next chapter route without unconfirmed content", async ({ page }) => {
+test("opens the confirmed second chapter route from the first chapter", async ({ page }) => {
   await page.goto("/chapters/02");
 
-  await expect(page.getByRole("heading", { name: "第二章" })).toBeVisible();
-  await expect(page.getByText("这一页会在课程推进时承接后续互动体验")).toBeVisible();
-  await expect(page.getByText("token")).toHaveCount(0);
-  await expect(page.getByText("RAG")).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "多轮对话的真实机制" })).toBeVisible();
+  await expect(page.getByText("模型每次只能基于本次调用可见上下文回答")).toBeVisible();
+  await expect(page.getByRole("link", { name: "进入演示" })).toHaveAttribute(
+    "href",
+    "/chapters/02/demos/history-replay",
+  );
 });

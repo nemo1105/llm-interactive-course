@@ -6,7 +6,15 @@ export type SequenceActorKind =
   | "context"
   | "agent"
   | "gate"
-  | "metric";
+  | "metric"
+  | "memory"
+  | "skill"
+  | "environment"
+  | "channel"
+  | "connector"
+  | "scheduler"
+  | "file"
+  | "human";
 
 export type SequenceMessageKind =
   | "message"
@@ -15,7 +23,10 @@ export type SequenceMessageKind =
   | "stream"
   | "tool-call"
   | "tool-result"
-  | "ui";
+  | "ui"
+  | "approval"
+  | "channel-message"
+  | "connector-auth";
 
 export type DemoMessageRole = "用户" | "助手" | "系统" | "工具" | "应用";
 
