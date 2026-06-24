@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "react-router dev --config vite.config.ts",
     "build": "react-router build --config vite.config.ts",
+    "build:github-pages": "GITHUB_PAGES=true react-router build --config vite.config.ts && node scripts/prepare-github-pages.mjs",
     "start": "react-router-serve ./build/server/index.js",
     "typecheck": "react-router typegen && tsc --noEmit",
     "docs:lint": "node scripts/docs-lint.mjs",

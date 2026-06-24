@@ -9,6 +9,7 @@ import {
   Network,
   Scale,
 } from "lucide-react";
+import { Link } from "react-router";
 
 import { Button } from "../ui/button";
 import type { landingContent, ValueItem } from "../../lib/landing-content";
@@ -176,10 +177,10 @@ function HeroSection({
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
           <Button asChild>
-            <a href={content.primaryAction.href}>
+            <Link to={content.primaryAction.href}>
               {content.primaryAction.label}
               <ArrowRight aria-hidden="true" className="size-4" />
-            </a>
+            </Link>
           </Button>
           <Button asChild variant="secondary">
             <a href={`#${firstValueAnchor}`}>查看课程价值</a>
@@ -273,10 +274,10 @@ function ChapterEntry({ content }: { content: typeof landingContent }) {
         </h2>
         <div className="mt-8 flex justify-center">
           <Button asChild>
-            <a href={content.primaryAction.href}>
+            <Link to={content.primaryAction.href}>
               进入第一章
               <ArrowRight aria-hidden="true" className="size-4" />
-            </a>
+            </Link>
           </Button>
         </div>
       </div>

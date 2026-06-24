@@ -8,7 +8,7 @@ import {
   RotateCcw,
 } from "lucide-react";
 import { useState } from "react";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 
 import { buildDemoPlayerState, type DemoPlayerState } from "../../lib/demo-player/player";
 import type { DemoSpec } from "../../lib/demo-player/types";
@@ -126,12 +126,12 @@ function DemoHomeCard({ demo, disabled }: { demo: DemoSpec; disabled: boolean })
   }
 
   return (
-    <a
+    <Link
       className="group rounded-lg border border-slate-200 bg-white p-5 shadow-sm transition-colors hover:border-emerald-300 hover:bg-emerald-50"
-      href={demo.route}
+      to={demo.route}
     >
       {content}
-    </a>
+    </Link>
   );
 }
 
@@ -183,13 +183,13 @@ export function CourseDemoPage({
 export function CourseNotFound({ chapterNumber }: { chapterNumber?: string }) {
   return (
     <main className="min-h-screen bg-[#f6f7f2] px-4 py-10 text-slate-950 sm:px-6 lg:px-10">
-      <a
+      <Link
         className="inline-flex items-center gap-2 text-sm font-semibold text-slate-700 transition-colors hover:text-slate-950"
-        href="/"
+        to="/"
       >
         <Home aria-hidden="true" className="size-4" />
         LLM 技术全景课
-      </a>
+      </Link>
       <section className="mt-10 max-w-2xl rounded-lg border border-slate-200 bg-white p-6">
         <p className="text-sm font-semibold text-slate-500">章节不存在</p>
         <h1 className="mt-3 text-3xl font-semibold tracking-normal">
@@ -249,13 +249,13 @@ function CourseHeader({
       className="shrink-0 border-b border-slate-200 bg-white"
     >
       <nav className={navClass}>
-        <a
+        <Link
           className="inline-flex items-center gap-2 text-sm font-semibold text-slate-700 transition-colors hover:text-slate-950"
-          href="/"
+          to="/"
         >
           <Home aria-hidden="true" className="size-4" />
           LLM 技术全景课
-        </a>
+        </Link>
         {stepControls ? <TopStepControls controls={stepControls} /> : null}
         <div className="flex flex-wrap items-center justify-start gap-2 lg:flex-nowrap lg:justify-end">
           {hasDemoSelect ? (
@@ -267,12 +267,12 @@ function CourseHeader({
           )}
           {chapter.previousRoute ? (
             <Button asChild variant="secondary">
-              <a href={chapter.previousRoute}>上一章</a>
+              <Link to={chapter.previousRoute}>上一章</Link>
             </Button>
           ) : null}
           {chapter.nextRoute ? (
             <Button asChild variant="secondary">
-              <a href={chapter.nextRoute}>下一章</a>
+              <Link to={chapter.nextRoute}>下一章</Link>
             </Button>
           ) : null}
           {primaryDisabled ? (
@@ -281,7 +281,7 @@ function CourseHeader({
             </Button>
           ) : (
             <Button asChild>
-              <a href={primaryHref}>{primaryLabel}</a>
+              <Link to={primaryHref}>{primaryLabel}</Link>
             </Button>
           )}
         </div>

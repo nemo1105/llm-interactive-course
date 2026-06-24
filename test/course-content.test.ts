@@ -8,6 +8,7 @@ import {
   getCourseDemo,
   isCourseChapterReviewed,
 } from "../app/lib/course-content";
+import { getStaticRoutePaths } from "../app/lib/static-routes";
 
 const forbiddenPayloadKeys = new Set([
   "event",
@@ -220,5 +221,22 @@ describe("courseChapters", () => {
     expect(getCourseDemo("12", "context-driven-loop")?.title).toContain("Agent 下一步");
     expect(getCourseDemo("14", "two-rag-paths")?.title).toContain("外部插入");
     expect(getCourseDemo("99", "missing")).toBeUndefined();
+  });
+
+  it("lists every route that GitHub Pages should pre-render", () => {
+    const paths = getStaticRoutePaths();
+
+    expect(paths).toContain("/");
+    expect(paths).toContain("/chapters/01");
+    expect(paths).toContain("/chapters/01/demos/direct");
+    expect(paths).toContain("/chapters/02/demos/history-replay");
+    expect(paths).toContain("/chapters/28/demos/eval-feedback-loop");
+
+    for (const chapter of courseChapters) {
+      expect(paths).toContain(chapter.route);
+      for (const demo of chapter.demos) {
+        expect(paths).toContain(demo.route);
+      }
+    }
   });
 });

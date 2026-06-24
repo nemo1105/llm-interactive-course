@@ -9,7 +9,7 @@ import {
   RotateCcw,
 } from "lucide-react";
 import { useState } from "react";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 
 import { DemoPlayer } from "../demo-player/DemoPlayer";
 import { buildDemoPlayerState, type DemoPlayerState } from "../../lib/demo-player/player";
@@ -60,10 +60,10 @@ export function ChapterOneHome() {
       <section className="w-full px-4 py-8 sm:px-6 lg:px-10">
         <div className="grid gap-4 lg:grid-cols-2">
           {chapterOneContent.demos.map((demo) => (
-            <a
+            <Link
               className="group rounded-lg border border-slate-200 bg-white p-5 shadow-sm transition-colors hover:border-emerald-300 hover:bg-emerald-50"
-              href={demo.route}
               key={demo.id}
+              to={demo.route}
             >
               <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-2 text-sm font-semibold text-slate-700">
@@ -82,7 +82,7 @@ export function ChapterOneHome() {
               <h2 className="mt-4 text-2xl font-semibold text-slate-950">{demo.title}</h2>
               <p className="mt-3 text-sm leading-6 text-slate-600">{demo.summary}</p>
               <p className="mt-4 text-sm font-medium text-emerald-800">{demo.outcome}</p>
-            </a>
+            </Link>
           ))}
         </div>
       </section>
@@ -162,13 +162,13 @@ function ChapterHeader({
       className="shrink-0 border-b border-slate-200 bg-white"
     >
       <nav className={navClass}>
-        <a
+        <Link
           className="inline-flex items-center gap-2 text-sm font-semibold text-slate-700 transition-colors hover:text-slate-950"
-          href="/"
+          to="/"
         >
           <Home aria-hidden="true" className="size-4" />
           LLM 技术全景课
-        </a>
+        </Link>
         {stepControls ? <TopStepControls controls={stepControls} /> : null}
         <div className="flex flex-wrap items-center justify-start gap-2 lg:flex-nowrap lg:justify-end">
           {hasDemoSelect ? (
@@ -179,10 +179,10 @@ function ChapterHeader({
             </span>
           )}
           <Button asChild variant="secondary">
-            <a href={chapterOneContent.nextChapterRoute}>下一章</a>
+            <Link to={chapterOneContent.nextChapterRoute}>下一章</Link>
           </Button>
           <Button asChild>
-            <a href={primaryHref}>{primaryLabel}</a>
+            <Link to={primaryHref}>{primaryLabel}</Link>
           </Button>
         </div>
       </nav>
